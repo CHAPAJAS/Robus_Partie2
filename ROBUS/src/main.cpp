@@ -7,9 +7,10 @@
 /******************************************************************************/
 /* main --------------------------------------------------------------------- */
 void setup() {
-  // put your setup code here, to run once:
+  BoardInit();
   
   Deplacement_Init();
+  Deplacement_Ligne(50);
 }
 
 void loop() {

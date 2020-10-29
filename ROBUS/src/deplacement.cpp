@@ -21,7 +21,7 @@
 
 /******************************************************************************/
 /* Variables ---------------------------------------------------------------- */
-int32_t consigne  = 0;
+int32_t commande  = 0;
 float   integrale = 0.0;
 
 bool fini = true;
@@ -43,7 +43,9 @@ void Deplacement_Init()
     Timer1.initialize(TIMER_DELAY_MS * 1000);
     Timer1.attachInterrupt(&Deplacement_PID);
 
-    pinMode(LED_BUILTIN, OUTPUT);
+    // Réinitiatialisation de l'encodeur
+    ENCODER_Reset(LEFT);
+    ENCODER_Reset(RIGHT);
 }
 
 bool Deplacement_Fini()
@@ -64,8 +66,10 @@ bool Deplacement_Ligne(int distanceCM)
     ENCODER_Reset(RIGHT);
 
     // Mise à jour de la nouvelle consigne
-    consigne = CMtoCoche(distanceCM);
+    commande = CMtoCoche(distanceCM);
     fini     = false;
+
+    return true;
 }
 
 void Deplacement_PID()
@@ -77,22 +81,24 @@ void Deplacement_PID()
         return;
     }
 
+
     // Lecture de la valeur de l'encodeur gauche
-    int32_t valeurEncodeur = ENCODER_Read(LEFT);
+    int32_t valeurEncodeur = ENCODER_ReadReset(LEFT);
 
     // Vérifie si on a fini notre déplacement
-    if (Deplacement_Check(consigne, valeurEncodeur) == true)
+    if (Deplacement_Check(commande, valeurEncodeur) == true)
     {
+        integrale = 0;
         fini = true;
         return;
     }
 
     // Calcul du multiplicateur de vitesse de la roue gauche à l'aide de
     // l'algorithme de PID.
-    float multiplicateur = Deplacement_PID_Calculate(consigne, valeurEncodeur);
+    float multiplicateur = Deplacement_PID_Calculate(commande, valeurEncodeur);
 
     // Ajustement des vitesses des deux roues
-    MOTOR_SetSpeed(LEFT, 0.5 * multiplicateur);
+    MOTOR_SetSpeed(LEFT, 0.5);
     MOTOR_SetSpeed(RIGHT, 0.5);
 }
 
@@ -102,10 +108,11 @@ float Deplacement_PID_Calculate(int32_t valeurVoulue, int32_t valeurEncodeur)
     // Une valeur de `erreur` négative indique qu'on a trop déplacé
     // Une valeur de `erreur` positive indique qu'on a pas assez déplacé
     int32_t erreur = valeurVoulue - valeurEncodeur;
-
+    commande = erreur;
+    Serial.println(commande);
     // Calcul de l'intégrale
     // On multiplie l'erreur par dt (en s), et on l'ajoute au total
-    integrale += erreur * (TIMER_DELAY_MS / 1000);
+    integrale += (float)erreur * (TIMER_DELAY_MS / 1000);       //SI sa fuck c'est de la faute à cette ligne  
 
     // Calcul du multiplicateur de vitesse
     return 1 + (KP * erreur + KI * integrale);
