@@ -9,10 +9,28 @@
 void setup() {
   BoardInit();
   
+  // Initialisations
   Deplacement_Init();
-  Deplacement_Ligne(50);
+
+  print("\n Début de programme : %d --------------------------------- \n", millis());
+
+  // Conditions initiales
+  Deplacement_Ligne(10);
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  extern int32_t commandeG;
+  extern int32_t commandeD;
+
+  if (Deplacement_Fini() == false)
+  {
+
+    
+  }
+  else
+  {
+    print("Déplacement terminé à %d, cmdG: %ld, cmdD: %ld", millis(), commandeG, commandeD);
+    while(true){}
+  }
+  
 }

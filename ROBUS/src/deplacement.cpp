@@ -7,9 +7,9 @@
 
 /******************************************************************************/
 /* Constantes --------------------------------------------------------------- */
-#define TIMER_DELAY_MS 10       // Delai entre les mesures et ajustements
+#define TIMER_DELAY_MS 30       // Delai entre les mesures et ajustements
 
-#define KP 0.05
+#define KP 0.005
 #define KI 0.00005
 
 #define MARGE_VALEUR     50     // Vérification de position en nombre de coches
@@ -34,7 +34,7 @@ bool fini = true;
 int32_t CMtoCoche(int32_t valeurCM);
 
 void  Deplacement_PID();
-float Deplacement_PID_Calculate(int32_t valeurEncodeur, int32_t* cmd, float* integ);
+float Deplacement_PID_Calculate(uint32_t valeurEncodeur, int32_t* cmd, float* integ);
 bool  Deplacement_Check(int32_t valeurVoulue, int32_t valeurEncodeur);
 
 
@@ -42,12 +42,12 @@ bool  Deplacement_Check(int32_t valeurVoulue, int32_t valeurEncodeur);
 /* Définitions de fonctions ------------------------------------------------- */
 void Deplacement_Init()
 {
-    Timer1.initialize(TIMER_DELAY_MS * 1000);
-    Timer1.attachInterrupt(&Deplacement_PID);
-
     // Réinitiatialisation de l'encodeur
     ENCODER_Reset(LEFT);
     ENCODER_Reset(RIGHT);
+
+    Timer1.initialize(TIMER_DELAY_MS * 1000);
+    Timer1.attachInterrupt(&Deplacement_PID);
 }
 
 bool Deplacement_Fini()
@@ -69,7 +69,10 @@ bool Deplacement_Ligne(int distanceCM)
 
     // Mise à jour de la nouvelle consigne
     commandeG = CMtoCoche(distanceCM);
-    fini     = false;
+    commandeD = CMtoCoche(distanceCM);
+    fini      = false;
+
+    print("Départ de déplacement de %d cm, G: %ld, D: %ld\n", distanceCM, commandeG, commandeD);
 
     return true;
 }
@@ -89,40 +92,46 @@ void Deplacement_PID()
     int32_t valeurEncodeurD = ENCODER_ReadReset(RIGHT);
 
     // Vérifie si on a fini notre déplacement
-    if (Deplacement_Check(commandeG, valeurEncodeurG) == true && Deplacement_Check(commandeD, valeurEncodeurD))
+    if (Deplacement_Check(commandeG, valeurEncodeurG) == true || Deplacement_Check(commandeD, valeurEncodeurD))
     {
-        integraleG = 0;
-        integraleD = 0;
+        integraleG = 0.0;
+        integraleD = 0.0;
+        commandeG = 0;
+        commandeD = 0;
         fini = true;
         return;
     }
 
     // Calcul du multiplicateur de vitesse de la roue gauche à l'aide de
+    int32_t ancienneCommandeG = commandeG;
+    int32_t ancienneCommandeD = commandeD;
+
     // l'algorithme de PID.
-    float multiplicateurG = Deplacement_PID_Calculate(valeurEncodeurG, &commandeG, &integraleG);
-    float multiplicateurD = Deplacement_PID_Calculate(valeurEncodeurD, &commandeD, &integraleD);
+    /*float multiplicateurG =*/ Deplacement_PID_Calculate(valeurEncodeurG, &commandeG, &integraleG);
+    /*float multiplicateurD =*/ Deplacement_PID_Calculate(valeurEncodeurD, &commandeD, &integraleD);
+
+    float derivG = (commandeG - ancienneCommandeG) / (TIMER_DELAY_MS / 1000);
+    print("cmdG: %ld, cmdD: %ld, derivG: %d\n", commandeG, commandeD, derivG);
 
     // Ajustement des vitesses des deux roues
     MOTOR_SetSpeed(LEFT, 0.5);
-    MOTOR_SetSpeed(RIGHT, 0.5);
+    MOTOR_SetSpeed(RIGHT, 0.5);    
 }
 
-float Deplacement_PID_Calculate(int32_t valeurEncodeur, int32_t* cmd, float* integ)
+float Deplacement_PID_Calculate(uint32_t valeurEncodeur, int32_t* cmd, float* integ)
 {
     // Calcul de l'erreur par rapport à la valeur désirée
     // Une valeur de `erreur` négative indique qu'on a trop déplacé
     // Une valeur de `erreur` positive indique qu'on a pas assez déplacé
-    int32_t erreur = *cmd - valeurEncodeur;
-    *cmd = erreur;
-
-    Serial.println(commandeG);
+    float erreur = (*cmd - valeurEncodeur) * (1 + KP);
 
     // Calcul de l'intégrale
     // On multiplie l'erreur par dt (en s), et on l'ajoute au total
-    *integ += (float)erreur * (TIMER_DELAY_MS / 1000);       //SI sa fuck c'est de la faute à cette ligne  
+    //*integ += erreur * (TIMER_DELAY_MS / 1000) * KI; 
 
     // Calcul du multiplicateur de vitesse
-    return 1 + (KP * erreur + KI * *integ);
+    *cmd = *integ + erreur;
+    return 1.0 + *cmd;
 }
 
 bool Deplacement_Check(int32_t valeurVoulue, int32_t valeurEncodeur)
