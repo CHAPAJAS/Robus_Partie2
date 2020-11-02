@@ -15,7 +15,7 @@ void setup() {
   print("\n Début de programme : %d --------------------------------- \n", millis());
 
   // Conditions initiales
-  Deplacement_Ligne(10);
+  Deplacement_Ligne(100);
 }
 
 void loop() {
