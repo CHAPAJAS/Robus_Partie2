@@ -7,10 +7,13 @@
 
 /******************************************************************************/
 /* Constantes --------------------------------------------------------------- */
-#define TIMER_DELAY_MS 30.0        // Delai entre les mesures et ajustements
+#define TIMER_DELAY_MS 75.0        // Delai entre les mesures et ajustements
 
-#define KP 0.005
-#define KI 0.00005
+#define KP_POSITION 0.005
+#define KI_POSITION 0.00005
+
+#define KP_VITESSE 0.005
+#define KI_VITESSE 0.01
 
 #define MARGE_VALEUR 50        // Vérification de position en nombre de coches
 
@@ -21,19 +24,20 @@
 #define TEMPS_POUR_METRE 3000         // ms pour traverser 1m à 0.5
 #define COCHES_PAR_MS    4.456        // Coches par ms
 
-#define PUISSANCE_DEFAULT 0.2
+#define PUISSANCE_DEFAULT 0.1
 
 
 /******************************************************************************/
 /* Variables ---------------------------------------------------------------- */
-int32_t tempsRequis     = 0;
+int32_t tempsRequis      = 0;
+int32_t consigneInitiale = 0;
 
 float commandeG          = 0;
 float commandeD          = 0;
 float integralePositionG = 0.0;
 float integralePositionD = 0.0;
 
-float commandeVitesse  = COCHES_PAR_MS * 1000;
+float commandeVitesse  = COCHES_PAR_MS;
 float integraleVitesse = 0;
 
 bool fini = true;
@@ -43,10 +47,14 @@ bool fini = true;
 /* Déclarations de fonctions ------------------------------------------------ */
 int32_t CMtoCoche(int32_t valeurCM);
 
-void  Deplacement_PID();
+void  PID();
+void  Deplacement_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD);
+void  Vitesse_PID(int32_t valeurEncodeur);
 float Deplacement_PID_Calculate(uint32_t valeur, float* cmd, float* integ);
 float Vitesse_PID_Calculate(uint32_t vitesseActuelle, float cmd, float* integ);
 bool  Deplacement_Check(int32_t valeurVoulue, int32_t valeurEncodeur);
+
+float Accel(int32_t distanceTotale, int32_t distanceRestante);
 
 
 /******************************************************************************/
@@ -58,12 +66,23 @@ void Deplacement_Init()
     ENCODER_Reset(RIGHT);
 
     Timer1.initialize(TIMER_DELAY_MS * 1000);
-    Timer1.attachInterrupt(&Deplacement_PID);
+    Timer1.attachInterrupt(&PID);
 }
 
 bool Deplacement_Fini()
 {
     return fini;
+}
+
+void Deplacement_Stop()
+{
+    integraleVitesse   = 0;
+    commandeVitesse    = COCHES_PAR_MS;
+    integralePositionG = 0.0;
+    integralePositionD = 0.0;
+    commandeG          = 0;
+    commandeD          = 0;
+    fini               = true;
 }
 
 bool Deplacement_Ligne(int distanceCM)
@@ -79,20 +98,26 @@ bool Deplacement_Ligne(int distanceCM)
     ENCODER_Reset(RIGHT);
 
     // Mise à jour de la nouvelle consigne
-    commandeG = CMtoCoche(distanceCM);
-    commandeD = CMtoCoche(distanceCM);
-    fini      = false;
+    consigneInitiale = CMtoCoche(distanceCM);
+    commandeG        = consigneInitiale;
+    commandeD        = consigneInitiale;
+    fini             = false;
 
     // Calcul du temps total requis pour le déplacement demandé.
-    tempsRequis = CMtoCoche(distanceCM) / COCHES_PAR_MS;
+    tempsRequis = consigneInitiale / COCHES_PAR_MS;
 
-    print("Départ de déplacement de %d cm, G: %ld, D: %ld\n", distanceCM, commandeG, commandeD);
+    print("Départ de déplacement de %d cm, G: %ld, D: %ld\n",
+          distanceCM,
+          (int32_t)commandeG,
+          (int32_t)commandeD);
 
     return true;
 }
 
-void Deplacement_PID()
+
+void PID()
 {
+    // Arrête tout si on a fini le déplacement
     if(fini == true)
     {
         MOTOR_SetSpeed(LEFT, 0);
@@ -100,47 +125,50 @@ void Deplacement_PID()
         return;
     }
 
-    // Lecture de la valeur de l'encodeur gauche
+    // Lecture de la valeur de l'encodeur
     int32_t valeurEncodeurG = ENCODER_ReadReset(LEFT);
-    int32_t valeurEncodeurD = ENCODER_Read(RIGHT);
+    int32_t valeurEncodeurD = ENCODER_ReadReset(RIGHT);
 
+
+    Deplacement_PID(valeurEncodeurG, valeurEncodeurD);
+    Vitesse_PID(valeurEncodeurG);
+
+    // Actualisation du temps
+    tempsRequis -= TIMER_DELAY_MS;
+}
+void Deplacement_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD)
+{
     // Vérifie si on a fini notre déplacement
     if(Deplacement_Check(commandeG, valeurEncodeurG) == true
        || Deplacement_Check(commandeD, valeurEncodeurD))
     {
-        integralePositionG = 0.0;
-        integralePositionD = 0.0;
-        commandeG          = 0;
-        commandeD          = 0;
-        fini               = true;
+        Deplacement_Stop();
         return;
     }
 
-    // Calcul de la vitesse actuelle du ROBUS
-    // (position2 - position1) / dt
-    float vitesseG = (valeurEncodeurG * 1000.0) / TIMER_DELAY_MS;
-    // float vitesseD = (valeurEncodeurD) / (TIMER_DELAY_MS / 1000);
-
-    // float tempsTheorique = commandeG / COCHES_PAR_MS;
-    // float tempsReal      = commandeG / vitesseG;
-
-    // // Si le dt est positif, il faut accélérer, s'il est négatif, il faut décélerer
-    // float deltaTemps = tempsTheorique - tempsReal;
-
-
     Deplacement_PID_Calculate(valeurEncodeurG, &commandeG, &integralePositionG);
     Deplacement_PID_Calculate(valeurEncodeurD, &commandeD, &integralePositionD);
+}
 
-    float multiplicateur = Deplacement_PID_Calculate(vitesseG, &commandeVitesse, &integraleVitesse);
+void Vitesse_PID(int32_t valeurEncodeur)
+{
+    // Calcul de la vitesse actuelle du ROBUS   (position2 - position1) / dt
+    float vitesseG = valeurEncodeur / TIMER_DELAY_MS;
+    // float vitesseD = (valeurEncodeurD) / (TIMER_DELAY_MS / 1000);
 
-    print("encodeur = %ld, vitesse = %d   commande = %d, multiplicateur = %d\n", valeurEncodeurG, vitesseG, commandeG, multiplicateur);
+    // Calcul de la vitesse théorique
+    commandeVitesse = Accel(consigneInitiale, commandeG);
+
+    // Calcul du multiplicateur de vitesse
+    float multiplicateur = Vitesse_PID_Calculate(vitesseG, commandeVitesse, &integraleVitesse);
 
     // Ajustement des vitesses des deux roues
-    MOTOR_SetSpeed(LEFT, PUISSANCE_DEFAULT);
-    MOTOR_SetSpeed(RIGHT, PUISSANCE_DEFAULT);
+    MOTOR_SetSpeed(LEFT, PUISSANCE_DEFAULT * multiplicateur);
+    MOTOR_SetSpeed(RIGHT, PUISSANCE_DEFAULT * multiplicateur);
 
-    // Actualisation du temps
-    tempsRequis -= TIMER_DELAY_MS;
+    // print("vitesse = %ld\tcommande = %ld\n",
+    //       (int32_t)vitesseG,
+    //       (int32_t)commandeVitesse);
 }
 
 float Deplacement_PID_Calculate(uint32_t valeur, float* cmd, float* integ)
@@ -148,7 +176,7 @@ float Deplacement_PID_Calculate(uint32_t valeur, float* cmd, float* integ)
     // Calcul de l'erreur par rapport à la valeur désirée
     // Une valeur de `erreur` négative indique qu'on a trop déplacé
     // Une valeur de `erreur` positive indique qu'on a pas assez déplacé
-    float erreur = (*cmd - valeur) * (1 + KP);
+    float erreur = (*cmd - valeur) * (1 + KP_POSITION);
 
     // Calcul de l'intégrale
     // On multiplie l'erreur par dt (en s), et on l'ajoute au total
@@ -164,11 +192,11 @@ float Vitesse_PID_Calculate(uint32_t vitesseActuelle, float cmd, float* integ)
     // Calcul de l'erreur par rapport à la valeur désirée
     // Une valeur de `erreur` négative indique qu'on a trop déplacé
     // Une valeur de `erreur` positive indique qu'on a pas assez déplacé
-    float erreur = cmd - vitesseActuelle * (1 + KP);
+    float erreur = cmd - vitesseActuelle * (1 + KP_VITESSE);
 
     // Calcul de l'intégrale
     // On multiplie l'erreur par dt (en s), et on l'ajoute au total
-    *integ += erreur * (TIMER_DELAY_MS / 1000) * KI;
+    *integ += erreur * (TIMER_DELAY_MS / 1000) * KI_VITESSE;
 
     // Calcul du multiplicateur de vitesse
     return 1 + *integ + erreur;
@@ -191,4 +219,25 @@ int32_t CMtoCoche(int32_t valeurCM)
 {
     int32_t valeurCoche = (valeurCM / (DIAMETRE_ROUE * PI)) * COCHES_DANS_TOUR;
     return valeurCoche;
+}
+
+
+float Accel(int32_t distanceTotale, int32_t distanceRestante)
+{
+    // | 10% | 25% |      | 25% | 10% |
+    // | 50% | 75% | 100% | 75% | 10% |
+    
+    // Sous 10% de chaque côté, 50% de la vitesse
+    if((distanceRestante > 0.9 * distanceTotale) || (distanceRestante < 0.1 * distanceTotale))
+    {
+        return COCHES_PAR_MS * 0.5;
+    }
+    // Sous 25% de chaque côté, 75% de la vitesse
+    if((distanceRestante > 0.75 * distanceTotale) || (distanceRestante < 0.25 * distanceTotale))
+    {
+        return COCHES_PAR_MS;
+    }
+
+    // Reste des valeurs
+    return COCHES_PAR_MS;
 }
