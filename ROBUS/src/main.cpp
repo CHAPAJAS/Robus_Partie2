@@ -3,12 +3,15 @@
 #include "LibCHAPAJAS.h"
 #include "deplacement.h"
 #define PIN 0
+#define SONAR 1
 
-
+//capteur 1 : petit collant
+//capteur 2 : gros collant
 uint16_t LECTURE_DISTANCE();
 float LECTURE_DISTANCE_CM1();
 float LECTURE_DISTANCE_CM2();
 float DISTANCECM (uint16_t capteur);
+float distanceSonar();
 float trouverBalle();
 void setup() {
   // put your setup code here, to run once:
@@ -18,11 +21,11 @@ void setup() {
 
 void loop() {
   
-  Serial.println(LECTURE_DISTANCE_CM2());
+  Serial.println(distanceSonar());
   delay(500);
-  Serial.println(LECTURE_DISTANCE_CM2());
+  Serial.println(distanceSonar());
   delay(500);
-  Serial.println(LECTURE_DISTANCE_CM2());
+  Serial.println(distanceSonar());
   delay(500);
   // put your main code here, to run repeatedly:
  /* float distance=0;
@@ -42,6 +45,14 @@ void loop() {
   while(1)
   {}
 }
+
+float distanceSonar()
+{
+  return (SONAR_GetRange(SONAR));
+}
+
+
+
 uint16_t LECTURE_DISTANCE()
 {
   return (ROBUS_ReadIR(PIN));
@@ -71,7 +82,7 @@ float distanceBalle = 0;
       cpt++;
     }
     cptpertetmps++;
-    delay(250);
+    delay(100);
     distancetemp = LECTURE_DISTANCE_CM1();
     if(cptpertetmps > 15)
     {
