@@ -7,13 +7,14 @@
 
 /******************************************************************************/
 /* Constantes --------------------------------------------------------------- */
-#define TIMER_DELAY_MS 75.0        // Delai entre les mesures et ajustements
+#define TIMER_DELAY_MS 50.0        // Delai entre les mesures et ajustements
 
 #define KP_POSITION 0.005
 #define KI_POSITION 0.00005
 
 #define KP_VITESSE 0.005
 #define KI_VITESSE 0.01
+#define KD_VITESSE 0.01
 
 #define MARGE_VALEUR 50        // Vérification de position en nombre de coches
 
@@ -37,6 +38,7 @@ float commandeD          = 0;
 float integralePositionG = 0.0;
 float integralePositionD = 0.0;
 
+float erreurVitessePrev = 0;
 float commandeVitesse  = COCHES_PAR_MS;
 float integraleVitesse = 0;
 
@@ -48,10 +50,13 @@ bool fini = true;
 int32_t CMtoCoche(int32_t valeurCM);
 
 void  PID();
+
 void  Deplacement_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD);
 void  Vitesse_PID(int32_t valeurEncodeur);
+
 float Deplacement_PID_Calculate(uint32_t valeur, float* cmd, float* integ);
 float Vitesse_PID_Calculate(uint32_t vitesseActuelle, float cmd, float* integ);
+
 bool  Deplacement_Check(int32_t valeurVoulue, int32_t valeurEncodeur);
 
 float Accel(int32_t distanceTotale, int32_t distanceRestante);
@@ -129,13 +134,13 @@ void PID()
     int32_t valeurEncodeurG = ENCODER_ReadReset(LEFT);
     int32_t valeurEncodeurD = ENCODER_ReadReset(RIGHT);
 
-
     Deplacement_PID(valeurEncodeurG, valeurEncodeurD);
     Vitesse_PID(valeurEncodeurG);
 
     // Actualisation du temps
     tempsRequis -= TIMER_DELAY_MS;
 }
+
 void Deplacement_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD)
 {
     // Vérifie si on a fini notre déplacement
@@ -190,16 +195,22 @@ float Deplacement_PID_Calculate(uint32_t valeur, float* cmd, float* integ)
 float Vitesse_PID_Calculate(uint32_t vitesseActuelle, float cmd, float* integ)
 {
     // Calcul de l'erreur par rapport à la valeur désirée
-    // Une valeur de `erreur` négative indique qu'on a trop déplacé
-    // Une valeur de `erreur` positive indique qu'on a pas assez déplacé
+    // Une valeur de `erreur` négative indique qu'on va trop vite
+    // Une valeur de `erreur` positive indique qu'on va pas assez vite
     float erreur = cmd - vitesseActuelle * (1 + KP_VITESSE);
+
+    // Calcul de la dérivée
+    float deriv = (erreur - erreurVitessePrev) * (KD_VITESSE / (TIMER_DELAY_MS / 1000));
 
     // Calcul de l'intégrale
     // On multiplie l'erreur par dt (en s), et on l'ajoute au total
-    *integ += erreur * (TIMER_DELAY_MS / 1000) * KI_VITESSE;
+    *integ += erreur * ((TIMER_DELAY_MS / 1000) * KI_VITESSE);
+
+    // Mise à jour de l'ancienne erreur
+    erreurVitessePrev = erreur;
 
     // Calcul du multiplicateur de vitesse
-    return 1 + *integ + erreur;
+    return 1 + *integ + deriv + erreur;
 }
 
 bool Deplacement_Check(int32_t valeurVoulue, int32_t valeurEncodeur)
@@ -226,7 +237,7 @@ float Accel(int32_t distanceTotale, int32_t distanceRestante)
 {
     // | 10% | 25% |      | 25% | 10% |
     // | 50% | 75% | 100% | 75% | 10% |
-    
+
     // Sous 10% de chaque côté, 50% de la vitesse
     if((distanceRestante > 0.9 * distanceTotale) || (distanceRestante < 0.1 * distanceTotale))
     {
