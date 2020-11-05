@@ -13,8 +13,8 @@
 #define KI_POSITION 0.00005
 
 #define KP_VITESSE 0.005
-#define KI_VITESSE 0.01
-#define KD_VITESSE 0.01
+#define KI_VITESSE 0.00005
+#define KD_VITESSE 0.02
 
 #define MARGE_VALEUR 50        // Vérification de position en nombre de coches
 
@@ -52,7 +52,7 @@ int32_t CMtoCoche(int32_t valeurCM);
 void  PID();
 
 void  Deplacement_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD);
-void  Vitesse_PID(int32_t valeurEncodeur);
+void  Vitesse_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD);
 
 float Deplacement_PID_Calculate(uint32_t valeur, float* cmd, float* integ);
 float Vitesse_PID_Calculate(uint32_t vitesseActuelle, float cmd, float* integ);
@@ -135,7 +135,7 @@ void PID()
     int32_t valeurEncodeurD = ENCODER_ReadReset(RIGHT);
 
     Deplacement_PID(valeurEncodeurG, valeurEncodeurD);
-    Vitesse_PID(valeurEncodeurG);
+    Vitesse_PID(valeurEncodeurG, valeurEncodeurD);
 
     // Actualisation du temps
     tempsRequis -= TIMER_DELAY_MS;
@@ -155,21 +155,22 @@ void Deplacement_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD)
     Deplacement_PID_Calculate(valeurEncodeurD, &commandeD, &integralePositionD);
 }
 
-void Vitesse_PID(int32_t valeurEncodeur)
+void Vitesse_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD)
 {
     // Calcul de la vitesse actuelle du ROBUS   (position2 - position1) / dt
-    float vitesseG = valeurEncodeur / TIMER_DELAY_MS;
-    // float vitesseD = (valeurEncodeurD) / (TIMER_DELAY_MS / 1000);
+    float vitesseG = valeurEncodeurG / TIMER_DELAY_MS;
+    float vitesseD = valeurEncodeurD / TIMER_DELAY_MS;
 
     // Calcul de la vitesse théorique
     commandeVitesse = Accel(consigneInitiale, commandeG);
 
     // Calcul du multiplicateur de vitesse
-    float multiplicateur = Vitesse_PID_Calculate(vitesseG, commandeVitesse, &integraleVitesse);
+    float multiplicateurG = Vitesse_PID_Calculate(vitesseG, commandeVitesse, &integraleVitesse);
+    float multiplicateurD = Vitesse_PID_Calculate(vitesseD, commandeVitesse, &integraleVitesse);
 
     // Ajustement des vitesses des deux roues
-    MOTOR_SetSpeed(LEFT, PUISSANCE_DEFAULT * multiplicateur);
-    MOTOR_SetSpeed(RIGHT, PUISSANCE_DEFAULT * multiplicateur);
+    MOTOR_SetSpeed(LEFT, PUISSANCE_DEFAULT * multiplicateurG);
+    MOTOR_SetSpeed(RIGHT, PUISSANCE_DEFAULT * multiplicateurD);
 
     // print("vitesse = %ld\tcommande = %ld\n",
     //       (int32_t)vitesseG,
@@ -210,7 +211,8 @@ float Vitesse_PID_Calculate(uint32_t vitesseActuelle, float cmd, float* integ)
     erreurVitessePrev = erreur;
 
     // Calcul du multiplicateur de vitesse
-    return 1 + *integ + deriv + erreur;
+    // L'intégrale est divisée par 2 parce qu'on utilise la même variable pour les deux PID de vitesse
+    return 1 + (*integ / 2) + deriv + erreur;
 }
 
 bool Deplacement_Check(int32_t valeurVoulue, int32_t valeurEncodeur)
