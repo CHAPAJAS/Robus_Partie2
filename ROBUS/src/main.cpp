@@ -12,7 +12,9 @@ float LECTURE_DISTANCE_CM1();
 float LECTURE_DISTANCE_CM2();
 float DISTANCECM (uint16_t capteur);
 float distanceSonar();
-float trouverBalle();
+float trouverBalleCap1();
+float trouverBalleCap2();
+float trouverBalleSonar();
 void setup() {
   // put your setup code here, to run once:
   BoardInit();
@@ -20,7 +22,7 @@ void setup() {
 }
 
 void loop() {
-  
+  float distance=0;
   Serial.println(distanceSonar());
   delay(500);
   Serial.println(distanceSonar());
@@ -37,16 +39,16 @@ void loop() {
   delay(1000);
   Serial.print("Distance 3 cm : ");
   Serial.println(LECTURE_DISTANCE_CM1());
-  delay(1000);
-  distance  = trouverBalle();
+  delay(1000);*/
+  distance  = trouverBalleSonar();
   Serial.print("Distance balle : ");
-  Serial.println(distance);*/
+  Serial.println(distance);
 
   while(1)
   {}
 }
 
-float distanceSonar()
+float distanceSonar() //retourne la valeur en cm
 {
   return (SONAR_GetRange(SONAR));
 }
@@ -107,12 +109,12 @@ float distanceBalle = 0;
   //rajouter le tournant
   while (cpt<3)
   {
-    if(distancetemp < 60)
+    if(distancetemp < 100)
     {
       cpt++;
     }
     cptpertetmps++;
-    delay(250);
+    delay(100);
     distancetemp = LECTURE_DISTANCE_CM2();
     if(cptpertetmps > 15)
     {
@@ -122,8 +124,38 @@ float distanceBalle = 0;
   }
 
   //arreter la rotation 
-  delay(500);
+  delay(250);
   distanceBalle= LECTURE_DISTANCE_CM2();
+  //noter l'angle/position du robot
+  return distanceBalle;
+}
+float trouverBalleSonar()
+{
+  
+  int cpt = 0;
+  int cptpertetmps = 0;
+float distanceBalle = 0;
+  float distancetemp =  distanceSonar();
+  //rajouter le tournant
+  while (cpt<3)
+  {
+    if(distancetemp < 100)
+    {
+      cpt++;
+    }
+    cptpertetmps++;
+    delay(100);
+    distancetemp = distanceSonar();
+    if(cptpertetmps > 15)
+    {
+      distanceBalle = 0;
+      break;
+    }
+  }
+
+  //arreter la rotation 
+  delay(250);
+  distanceBalle= distanceSonar();
   //noter l'angle/position du robot
   return distanceBalle;
 }
