@@ -71,6 +71,11 @@ void Coords_Move(point destination)
     Deplacement_Ligne(distance);
 }
 
+void Coords_Move(int32_t x, int32_t y)
+{
+    Coords_Move({x, y});
+}
+
 void Coords_Move(cible destination)
 {
     switch(destination)

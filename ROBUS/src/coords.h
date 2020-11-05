@@ -28,6 +28,7 @@ typedef enum
 void Coords_Init(int robus);    // 0 pour A, 1 pour B
 
 void Coords_Move(point destination);
+void Coords_Move(int32_t x, int32_t y);
 void Coords_Move(cible destination);
 point Coords_PositionActuelle();
 
