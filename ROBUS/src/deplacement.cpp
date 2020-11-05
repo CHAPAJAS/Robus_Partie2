@@ -33,7 +33,7 @@ float commandeD          = 0;
 float integralePositionG = 0.0;
 float integralePositionD = 0.0;
 
-float commandeVitesse  = COCHES_PAR_MS;
+float commandeVitesse  = COCHES_PAR_MS * 1000;
 float integraleVitesse = 0;
 
 bool fini = true;
