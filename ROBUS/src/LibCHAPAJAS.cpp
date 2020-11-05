@@ -31,7 +31,7 @@ void print(const char* format, ...)
     // allouer qu'une seule fois, puis jamais désalloué; le même espace
     // mémoire est donc réutilisé.
     // https://www.geeksforgeeks.org/static-keyword-cpp/
-    static char buffer[64] = {0};
+    static char buffer[128] = {0};
     
     // Voici des types bizarres spécifique au C, qui permettent de contenir les
     // paramètres variadiques de la fonction. 

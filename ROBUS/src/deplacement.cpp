@@ -7,7 +7,7 @@
 
 /******************************************************************************/
 /* Constantes --------------------------------------------------------------- */
-#define TIMER_DELAY_MS 30        // Delai entre les mesures et ajustements
+#define TIMER_DELAY_MS 30.0        // Delai entre les mesures et ajustements
 
 #define KP 0.005
 #define KI 0.00005
@@ -27,12 +27,14 @@
 /******************************************************************************/
 /* Variables ---------------------------------------------------------------- */
 int32_t tempsRequis     = 0;
-int32_t commandeG       = 0;
-int32_t commandeD       = 0;
-int32_t ancienEncodeurG = 0;
-int32_t ancienEncodeurD = 0;
-float   integraleG      = 0.0;
-float   integraleD      = 0.0;
+
+float commandeG          = 0;
+float commandeD          = 0;
+float integralePositionG = 0.0;
+float integralePositionD = 0.0;
+
+float commandeVitesse  = COCHES_PAR_MS;
+float integraleVitesse = 0;
 
 bool fini = true;
 
@@ -42,7 +44,8 @@ bool fini = true;
 int32_t CMtoCoche(int32_t valeurCM);
 
 void  Deplacement_PID();
-float Deplacement_PID_Calculate(uint32_t valeurEncodeur, int32_t* cmd, float* integ);
+float Deplacement_PID_Calculate(uint32_t valeur, float* cmd, float* integ);
+float Vitesse_PID_Calculate(uint32_t vitesseActuelle, float cmd, float* integ);
 bool  Deplacement_Check(int32_t valeurVoulue, int32_t valeurEncodeur);
 
 
@@ -99,54 +102,53 @@ void Deplacement_PID()
 
     // Lecture de la valeur de l'encodeur gauche
     int32_t valeurEncodeurG = ENCODER_ReadReset(LEFT);
-    int32_t valeurEncodeurD = ENCODER_ReadReset(RIGHT);
+    int32_t valeurEncodeurD = ENCODER_Read(RIGHT);
 
     // Vérifie si on a fini notre déplacement
     if(Deplacement_Check(commandeG, valeurEncodeurG) == true
        || Deplacement_Check(commandeD, valeurEncodeurD))
     {
-        integraleG = 0.0;
-        integraleD = 0.0;
-        commandeG  = 0;
-        commandeD  = 0;
-        fini       = true;
+        integralePositionG = 0.0;
+        integralePositionD = 0.0;
+        commandeG          = 0;
+        commandeD          = 0;
+        fini               = true;
         return;
     }
 
     // Calcul de la vitesse actuelle du ROBUS
     // (position2 - position1) / dt
-    float vitesseG = (valeurEncodeurG - ancienEncodeurG) / (TIMER_DELAY_MS / 1000);
-    float vitesseD = (valeurEncodeurD - ancienEncodeurD) / (TIMER_DELAY_MS / 1000);
+    float vitesseG = (valeurEncodeurG * 1000.0) / TIMER_DELAY_MS;
+    // float vitesseD = (valeurEncodeurD) / (TIMER_DELAY_MS / 1000);
 
-    float tempsTheorique = commandeG / COCHES_PAR_MS;
-    float tempsReal = commandeG / vitesseG;
+    // float tempsTheorique = commandeG / COCHES_PAR_MS;
+    // float tempsReal      = commandeG / vitesseG;
 
-    // Si le dt est positif, il faut accélérer, s'il est négatif, il faut décélerer
-    float deltaTemps = tempsTheorique - tempsReal;
+    // // Si le dt est positif, il faut accélérer, s'il est négatif, il faut décélerer
+    // float deltaTemps = tempsTheorique - tempsReal;
 
 
-    Deplacement_PID_Calculate(valeurEncodeurG, &commandeG, &integraleG);
-    Deplacement_PID_Calculate(valeurEncodeurD, &commandeD, &integraleD);
+    Deplacement_PID_Calculate(valeurEncodeurG, &commandeG, &integralePositionG);
+    Deplacement_PID_Calculate(valeurEncodeurD, &commandeD, &integralePositionD);
+
+    float multiplicateur = Deplacement_PID_Calculate(vitesseG, &commandeVitesse, &integraleVitesse);
+
+    print("encodeur = %ld, vitesse = %d   commande = %d, multiplicateur = %d\n", valeurEncodeurG, vitesseG, commandeG, multiplicateur);
 
     // Ajustement des vitesses des deux roues
-    // Une vitesse moyenne normale devrait nous donner 0.5, il nous faut donc faire une règle de 3.
     MOTOR_SetSpeed(LEFT, PUISSANCE_DEFAULT);
     MOTOR_SetSpeed(RIGHT, PUISSANCE_DEFAULT);
-
-    // Sauvegarde des valeurs d'encodeur
-    ancienEncodeurG = valeurEncodeurG;
-    ancienEncodeurD = valeurEncodeurD;
 
     // Actualisation du temps
     tempsRequis -= TIMER_DELAY_MS;
 }
 
-float Deplacement_PID_Calculate(uint32_t valeurEncodeur, int32_t* cmd, float* integ)
+float Deplacement_PID_Calculate(uint32_t valeur, float* cmd, float* integ)
 {
     // Calcul de l'erreur par rapport à la valeur désirée
     // Une valeur de `erreur` négative indique qu'on a trop déplacé
     // Une valeur de `erreur` positive indique qu'on a pas assez déplacé
-    float erreur = (*cmd - valeurEncodeur) * (1 + KP);
+    float erreur = (*cmd - valeur) * (1 + KP);
 
     // Calcul de l'intégrale
     // On multiplie l'erreur par dt (en s), et on l'ajoute au total
@@ -155,6 +157,21 @@ float Deplacement_PID_Calculate(uint32_t valeurEncodeur, int32_t* cmd, float* in
     // Calcul du multiplicateur de vitesse
     *cmd = *integ + erreur;
     return 1.0 + *cmd;
+}
+
+float Vitesse_PID_Calculate(uint32_t vitesseActuelle, float cmd, float* integ)
+{
+    // Calcul de l'erreur par rapport à la valeur désirée
+    // Une valeur de `erreur` négative indique qu'on a trop déplacé
+    // Une valeur de `erreur` positive indique qu'on a pas assez déplacé
+    float erreur = cmd - vitesseActuelle * (1 + KP);
+
+    // Calcul de l'intégrale
+    // On multiplie l'erreur par dt (en s), et on l'ajoute au total
+    *integ += erreur * (TIMER_DELAY_MS / 1000) * KI;
+
+    // Calcul du multiplicateur de vitesse
+    return 1 + *integ + erreur;
 }
 
 bool Deplacement_Check(int32_t valeurVoulue, int32_t valeurEncodeur)

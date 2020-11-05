@@ -15,12 +15,12 @@ void setup() {
   print("\n Début de programme : %d --------------------------------- \n", millis());
 
   // Conditions initiales
-  Deplacement_Ligne(100);
+  Deplacement_Ligne(10);
 }
 
 void loop() {
-  extern int32_t commandeG;
-  extern int32_t commandeD;
+  extern float commandeG;
+  extern float commandeD;
 
   if (Deplacement_Fini() == false)
   {
