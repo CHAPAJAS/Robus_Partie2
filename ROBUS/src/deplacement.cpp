@@ -237,20 +237,34 @@ int32_t CMtoCoche(int32_t valeurCM)
 
 float Accel(int32_t distanceTotale, int32_t distanceRestante)
 {
-    // | 10% | 25% |      | 25% | 10% |
-    // | 50% | 75% | 100% | 75% | 10% |
+    int32_t distance = distanceTotale - distanceRestante;
 
-    // Sous 10% de chaque côté, 50% de la vitesse
-    if((distanceRestante > 0.9 * distanceTotale) || (distanceRestante < 0.1 * distanceTotale))
+    /*
+     * ^ P   _________________
+     * |    /                 \ 
+     * | __/                   \__
+     * |                        
+     * L-----------------------------> x 
+     */
+
+    // Sous 10% de la distance ou au-dessus de 90%
+    if((distance < 0.1 * distanceTotale) || (distance > 0.9 * distanceTotale))
     {
-        return COCHES_PAR_MS * 0.5;
+        return COCHES_PAR_MS * 0.3;
     }
-    // Sous 25% de chaque côté, 75% de la vitesse
-    if((distanceRestante > 0.75 * distanceTotale) || (distanceRestante < 0.25 * distanceTotale))
+    // Sous 25% de la distance
+    if(distance < 0.25 * distanceTotale)
     {
-        return COCHES_PAR_MS;
+        float multiplicateur = (distance / distanceTotale) * 2.8;
+        return COCHES_PAR_MS * multiplicateur;
+    }
+    // Au delà de 75% de la distance
+    if(distance > 0.75 * distanceTotale)
+    {
+        float multiplicateur = ((distance / distanceTotale) * -2.8) + 2.8;
+        return COCHES_PAR_MS * multiplicateur;
     }
 
     // Reste des valeurs
-    return COCHES_PAR_MS;
+    return COCHES_PAR_MS * 0.7;
 }
