@@ -48,9 +48,12 @@ void print(const char* format, ...)
     // `vsprintf` est une version de `sprintf` qui prend en argument une va_list,
     // ce qui permet de lui réacheminer les arguments variadiques reçus.
     // http://www.cplusplus.com/reference/cstdio/vsprintf/
-    vsprintf(buffer, format, args);
+    // `vsnprintf` est une version plus safe de `vsprintf`, dans laquelle on
+    // passe la taille maximale du tableau (elle est techniquement aussi rapide,
+    // car `vsprintf` appelle `vsnprintf`, avec comme taille `INT_MAX`).
+    int size = vsnprintf(buffer, sizeof(buffer), format, args);
 
-    Serial.print(buffer);
+    Serial.write((uint8_t*)buffer, size);
 }
 
 /* 

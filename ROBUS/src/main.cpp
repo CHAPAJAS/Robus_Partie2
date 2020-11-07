@@ -24,12 +24,12 @@ void loop() {
 
   if (Deplacement_Fini() == false)
   {
-
-    
+    print("Commande: %ld\n", (int32_t)commandeG);
+    delay(50);
   }
   else
   {
-    print("Déplacement terminé à %d, cmdG: %ld, cmdD: %ld", millis(), commandeG, commandeD);
+    print("\nDéplacement terminé à %d, cmdG: %ld, cmdD: %ld\n", millis(), commandeG, commandeD);
     while(true){}
   }
   

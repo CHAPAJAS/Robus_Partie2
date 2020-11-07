@@ -7,7 +7,7 @@
 
 /******************************************************************************/
 /* Constantes --------------------------------------------------------------- */
-#define TIMER_DELAY_MS 50.0        // Delai entre les mesures et ajustements
+#define TIMER_DELAY_MS 50        // Delai entre les mesures et ajustements
 
 #define KP_POSITION 0.005
 #define KI_POSITION 0.00005
@@ -54,7 +54,7 @@ void  PID();
 void  Deplacement_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD);
 void  Vitesse_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD);
 
-float Deplacement_PID_Calculate(uint32_t valeur, float* cmd, float* integ);
+float Deplacement_PID_Calculate(uint32_t valeur, float cmd, float* integ);
 float Vitesse_PID_Calculate(uint32_t vitesseActuelle, float cmd, float* integ);
 
 bool  Deplacement_Check(int32_t valeurVoulue, int32_t valeurEncodeur);
@@ -70,7 +70,7 @@ void Deplacement_Init()
     ENCODER_Reset(LEFT);
     ENCODER_Reset(RIGHT);
 
-    Timer1.initialize(TIMER_DELAY_MS * 1000);
+    Timer1.initialize((unsigned long)TIMER_DELAY_MS * 1000L);
     Timer1.attachInterrupt(&PID);
 }
 
@@ -151,15 +151,15 @@ void Deplacement_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD)
         return;
     }
 
-    Deplacement_PID_Calculate(valeurEncodeurG, &commandeG, &integralePositionG);
-    Deplacement_PID_Calculate(valeurEncodeurD, &commandeD, &integralePositionD);
+    commandeG = Deplacement_PID_Calculate(valeurEncodeurG, commandeG, &integralePositionG);
+    commandeD = Deplacement_PID_Calculate(valeurEncodeurD, commandeD, &integralePositionD);
 }
 
 void Vitesse_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD)
 {
     // Calcul de la vitesse actuelle du ROBUS   (position2 - position1) / dt
-    float vitesseG = valeurEncodeurG / TIMER_DELAY_MS;
-    float vitesseD = valeurEncodeurD / TIMER_DELAY_MS;
+    int32_t vitesseG = valeurEncodeurG / TIMER_DELAY_MS;
+    int32_t vitesseD = valeurEncodeurD / TIMER_DELAY_MS;
 
     // Calcul de la vitesse théorique
     commandeVitesse = Accel(consigneInitiale, commandeG);
@@ -177,20 +177,19 @@ void Vitesse_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD)
     //       (int32_t)commandeVitesse);
 }
 
-float Deplacement_PID_Calculate(uint32_t valeur, float* cmd, float* integ)
+float Deplacement_PID_Calculate(uint32_t valeur, float cmd, float* integ)
 {
     // Calcul de l'erreur par rapport à la valeur désirée
     // Une valeur de `erreur` négative indique qu'on a trop déplacé
     // Une valeur de `erreur` positive indique qu'on a pas assez déplacé
-    float erreur = (*cmd - valeur) * (1 + KP_POSITION);
+    float erreur = (cmd - valeur) * (1 + KP_POSITION);
 
     // Calcul de l'intégrale
     // On multiplie l'erreur par dt (en s), et on l'ajoute au total
     //*integ += erreur * (TIMER_DELAY_MS / 1000) * KI;
 
     // Calcul du multiplicateur de vitesse
-    *cmd = *integ + erreur;
-    return 1.0 + *cmd;
+    return *integ + erreur;
 }
 
 float Vitesse_PID_Calculate(uint32_t vitesseActuelle, float cmd, float* integ)
@@ -201,7 +200,7 @@ float Vitesse_PID_Calculate(uint32_t vitesseActuelle, float cmd, float* integ)
     float erreur = cmd - vitesseActuelle * (1 + KP_VITESSE);
 
     // Calcul de la dérivée
-    float deriv = (erreur - erreurVitessePrev) * (KD_VITESSE / (TIMER_DELAY_MS / 1000));
+    float deriv = (erreur - erreurVitessePrev) * (KD_VITESSE / ((float)TIMER_DELAY_MS / 1000.0));
 
     // Calcul de l'intégrale
     // On multiplie l'erreur par dt (en s), et on l'ajoute au total
@@ -230,7 +229,7 @@ bool Deplacement_Check(int32_t valeurVoulue, int32_t valeurEncodeur)
 
 int32_t CMtoCoche(int32_t valeurCM)
 {
-    int32_t valeurCoche = (valeurCM / (DIAMETRE_ROUE * PI)) * COCHES_DANS_TOUR;
+    int32_t valeurCoche = ((float)valeurCM / (DIAMETRE_ROUE * PI)) * COCHES_DANS_TOUR;
     return valeurCoche;
 }
 
@@ -255,14 +254,15 @@ float Accel(int32_t distanceTotale, int32_t distanceRestante)
     // Sous 25% de la distance
     if(distance < 0.25 * distanceTotale)
     {
-        float multiplicateur = (distance / distanceTotale) * 2.8;
-        return COCHES_PAR_MS * multiplicateur;
+        // Les multiplications par 128 s'annulent, c'est un comportement désiré.
+        int32_t multiplicateur = ((distance * 128) / distanceTotale) * 2.8;
+        return (COCHES_PAR_MS / 128) * multiplicateur;
     }
     // Au delà de 75% de la distance
     if(distance > 0.75 * distanceTotale)
     {
-        float multiplicateur = ((distance / distanceTotale) * -2.8) + 2.8;
-        return COCHES_PAR_MS * multiplicateur;
+        int32_t multiplicateur = (((distance * 128) / distanceTotale) * -2.8) + (2.8 * 128);
+        return (COCHES_PAR_MS / 128) * multiplicateur;
     }
 
     // Reste des valeurs
