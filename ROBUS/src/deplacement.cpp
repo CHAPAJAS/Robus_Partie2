@@ -18,7 +18,7 @@ struct pidPacket
 
 /******************************************************************************/
 /* Constantes --------------------------------------------------------------- */
-#define TIMER_DELAY_MS 50        // Delai entre les mesures et ajustements
+#define TIMER_DELAY_MS 75        // Delai entre les mesures et ajustements
 
 #define KP_POSITION 0.005f
 #define KI_POSITION 0.00005f
@@ -40,6 +40,8 @@ struct pidPacket
 #define COCHES_PAR_MS    4.456        // Coches par ms
 
 #define PUISSANCE_DEFAULT 0.1
+
+#define SPD  1.0625
 
 
 /******************************************************************************/
@@ -215,7 +217,7 @@ void Vitesse_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD)
 
     // Ajustement des vitesses des deux roues
     MOTOR_SetSpeed(LEFT, PUISSANCE_DEFAULT * multiplicateurG * speedModifier);
-    MOTOR_SetSpeed(RIGHT, PUISSANCE_DEFAULT * multiplicateurD * speedModifier);
+    MOTOR_SetSpeed(RIGHT, (PUISSANCE_DEFAULT * SPD) * multiplicateurD * speedModifier);
 }
 
 float Deplacement_PID_Calculate(uint32_t valeur, float cmd, pidPacket PID)
@@ -283,8 +285,7 @@ float Accel(int32_t distanceTotale, int32_t distanceRestante)
      * |    /                 \ 
      * | __/                   \__
      * |                        
-     * L-----------------------------> x . <
-     * 
+     * L-----------------------------> x
      */
 
     // Sous 10% de la distance ou au-dessus de 90%
