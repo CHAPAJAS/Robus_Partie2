@@ -21,10 +21,19 @@ void setup() {
 void loop() {
   extern float commandeG;
   extern float commandeD;
+  extern float commandeVitesse;
+
+  extern float vitesseG;
+  extern float vitesseD;
+  extern int32_t valEncodeurG;
+  extern int32_t valEncodeurD;
 
   if (Deplacement_Fini() == false)
   {
-    print("Commande: %ld\n", (int32_t)commandeG);
+    print("Commande: %ld \t %ld\n", (int32_t)commandeG, (int32_t)(commandeVitesse * 1000));
+    print("Vitesse: %ld, %ld\n", (int32_t)(vitesseG * 1000), (int32_t)(vitesseD * 1000));
+    print("Encodeur: %ld, %ld\n", valEncodeurG, valEncodeurD);
+    print("-----\n");
     delay(50);
   }
   else
