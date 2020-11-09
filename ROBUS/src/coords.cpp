@@ -8,30 +8,29 @@
 
 /******************************************************************************/
 /* Définitions -------------------------------------------------------------- */
-#define LONGEUR_PISTE 500        // cm
-#define HAUTEUR_PISTE 100        // cm
-#define LARGEUR_CARRE 30         // cm
+#define LONGEUR_PISTE 500    // cm
+#define HAUTEUR_PISTE 100    // cm
+#define LARGEUR_CARRE 30     // cm
 #define MOITIE_CARRE  LARGEUR_CARRE / 2
 
 
 /******************************************************************************/
 /* Constantes --------------------------------------------------------------- */
-const point Depart_A{MOITIE_CARRE, 75};        // Départ du robot A
-const point Depart_B{MOITIE_CARRE, 25};        // Départ du robot B
+const point Depart_A{MOITIE_CARRE, 75};    // Départ du robot A
+const point Depart_B{MOITIE_CARRE, 25};    // Départ du robot B
 
-const point Pastille{100 + MOITIE_CARRE,
-                     HAUTEUR_PISTE};               // Pastille de couleur, à 1m du début
-const point Balle{200 + 50, HAUTEUR_PISTE};        // Balle à 2.5m du début
+const point Pastille{100 + MOITIE_CARRE, HAUTEUR_PISTE / 2};    // Pastille de couleur, 1m du début
+const point Balle{200 + 50, HAUTEUR_PISTE / 2};                 // Balle à 2.5m du début
 
-const point Jaune{300 + 1, MOITIE_CARRE};        // A ACTUALISER
+const point Jaune{300 + 1, MOITIE_CARRE};    // A ACTUALISER
 const point Bleu{400 + MOITIE_CARRE, HAUTEUR_PISTE - MOITIE_CARRE};
-const point Rose{500 - MOITIE_CARRE, MOITIE_CARRE};        // Accoté sur le mur du fond,
+const point Rose{500 - MOITIE_CARRE, MOITIE_CARRE};    // Accoté sur le mur du fond,
 
 
 /******************************************************************************/
 /* Variables ---------------------------------------------------------------- */
 point positionActuelle = {0, 0};
-float angleActuel = 0;
+float angleActuel      = 0;
 
 
 /******************************************************************************/
@@ -63,18 +62,22 @@ void Coords_Move(point destination)
     }
 
     float distance = GetDistanceToPoint(positionActuelle, destination);
-    //float angle    = GetAngleToPoint(positionActuelle, destination);
+    // float angle    = GetAngleToPoint(positionActuelle, destination);
 
     // Rotation
     // A IMPLEMENTER
 
     // Deplacement
     Deplacement_Ligne(distance);
+
+    // Actualisation de la position et de l'angle
     positionActuelle = destination;
+    // angleActuel += angle;
 }
 
 void Coords_Move(int32_t x, int32_t y)
 {
+    // Appelle la vraie fonction 'Move' avec les points
     Coords_Move({x, y});
 }
 
@@ -124,10 +127,10 @@ float GetDistanceToPoint(point A, point B)
     int16_t dy = A.y - B.y;
 
     // Pythagore
-    dx             = dx * dx;        // x^2
-    dy             = dy * dy;        // y^2
-    float distance = sqrt(dx + dy);
+    dx = dx * dx;    // x^2
+    dy = dy * dy;    // y^2
 
+    float distance = sqrt(dx + dy);
     return distance;
 }
 

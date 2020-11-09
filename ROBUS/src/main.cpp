@@ -1,8 +1,8 @@
 /******************************************************************************/
 /* Inclusions --------------------------------------------------------------- */
 #include "LibCHAPAJAS.h"
-#include "deplacement.h"
 #include "coords.h"
+#include "deplacement.h"
 
 
 /******************************************************************************/
@@ -12,14 +12,16 @@
 
 /******************************************************************************/
 /* main --------------------------------------------------------------------- */
-void setup() {
-  BoardInit();
-  
-  Coords_Init(ROBUS);
-  Deplacement_Init();
-  Deplacement_Ligne(50);
+void setup()
+{
+    BoardInit();
+
+    Coords_Init(ROBUS);
+    Deplacement_Init();
+    Deplacement_Ligne(50);
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
+void loop()
+{
+    // put your main code here, to run repeatedly:
 }
