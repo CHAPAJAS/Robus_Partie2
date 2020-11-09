@@ -143,3 +143,4 @@ int32_t CMtoCoche(int32_t valeurCM)
     int32_t valeurCoche = (valeurCM / (DIAMETRE_ROUE * PI)) * COCHES_DANS_TOUR;
     return valeurCoche;
 }
+
