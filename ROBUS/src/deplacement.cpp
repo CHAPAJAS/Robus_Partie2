@@ -9,26 +9,37 @@
 /* Types -------------------------------------------------------------------- */
 struct pidPacket
 {
-    float KP;
-    float KI;
-    float KD;
+    float  KP;
+    float  KI;
+    float  KD;
     float* integ;
+    float* deriv;
 };
 
 
 /******************************************************************************/
 /* Constantes --------------------------------------------------------------- */
+#define NEW_PID
+
+
 #define TIMER_DELAY_MS 75        // Delai entre les mesures et ajustements
+#define DELTA_T        ((float)TIMER_DELAY_MS / 1000.0)
 
 #define KP_POSITION 0.005f
 #define KI_POSITION 0.00005f
 
+#ifdef NEW_PID
+#define KP_VITESSE 0.005f
+#define KI_VITESSE 0.00005f
+#define KD_VITESSE 0.02f
+#else
 #define KP_VITESSE_G 0.005f
 #define KI_VITESSE_G 0.00005f
 #define KD_VITESSE_G 0.02f
 #define KP_VITESSE_D 0.005f
 #define KI_VITESSE_D 0.00005f
 #define KD_VITESSE_D 0.02f
+#endif
 
 #define MARGE_VALEUR 50        // Vérification de position en nombre de coches
 
@@ -39,9 +50,8 @@ struct pidPacket
 #define TEMPS_POUR_METRE 3000         // ms pour traverser 1m à 0.5
 #define COCHES_PAR_MS    4.456        // Coches par ms
 
-#define PUISSANCE_DEFAULT 0.1
+#define PUISSANCE_DEFAULT 0.5
 
-#define SPD  1.0625
 
 
 /******************************************************************************/
@@ -49,24 +59,34 @@ struct pidPacket
 int32_t tempsRequis      = 0;
 int32_t consigneInitiale = 0;
 
-float speedModifier = 1;        // Multiplies the speed
+float speedModifier = 1;        // Multiplie la vitesse
 
 float commandeG          = 0;
 float commandeD          = 0;
 float integralePositionG = 0.0;
 float integralePositionD = 0.0;
 
-float erreurVitessePrev = 0;
-float commandeVitesse  = COCHES_PAR_MS;
-float integraleVitesseG = 0;
-float integraleVitesseD = 0;
+float commandeVitesse = COCHES_PAR_MS;
+
+#ifdef NEW_PID
+float integrale      = 0;
+float derniereErreur = 0;
+#else
+float           erreurVitessePrev = 0;
+float           integraleVitesseG = 0;
+float           integraleVitesseD = 0;
+#endif
 
 bool fini = true;
 
-const pidPacket PID_SPEED_G = {KP_VITESSE_G, KI_VITESSE_G, KD_VITESSE_G, &integraleVitesseG};
-const pidPacket PID_SPEED_D = {KP_VITESSE_D, KI_VITESSE_D, KD_VITESSE_D, &integraleVitesseD};
-const pidPacket PID_POSITION_G = {KP_POSITION, KI_POSITION, 0, &integralePositionG};
-const pidPacket PID_POSITION_D = {KP_POSITION, KI_POSITION, 0, &integralePositionD};
+#ifdef NEW_PID
+const pidPacket PID_SPEED = {KP_VITESSE, KI_VITESSE, KD_VITESSE, &integrale, &derniereErreur};
+#else
+const pidPacket PID_SPEED_G       = {KP_VITESSE_G, KI_VITESSE_G, KD_VITESSE_G, &integraleVitesseG};
+const pidPacket PID_SPEED_D       = {KP_VITESSE_D, KI_VITESSE_D, KD_VITESSE_D, &integraleVitesseD};
+#endif
+const pidPacket PID_POSITION_G = {KP_POSITION, KI_POSITION, 0, &integralePositionG, nullptr};
+const pidPacket PID_POSITION_D = {KP_POSITION, KI_POSITION, 0, &integralePositionD, nullptr};
 
 
 /******************************************************************************/
@@ -74,14 +94,15 @@ const pidPacket PID_POSITION_D = {KP_POSITION, KI_POSITION, 0, &integralePositio
 int32_t CMtoCoche(int32_t valeurCM);
 
 void  PID();
+float cheeky_pid(float objectif, float valeur, pidPacket pid);
 
-void  Deplacement_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD);
-void  Vitesse_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD);
+void Deplacement_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD);
+void Vitesse_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD);
 
 float Deplacement_PID_Calculate(uint32_t valeur, float cmd, pidPacket pid);
 float Vitesse_PID_Calculate(float vitesseActuelle, float cmd, pidPacket pid);
 
-bool  Deplacement_Check(int32_t valeurVoulue, int32_t valeurEncodeur);
+bool Deplacement_Check(int32_t valeurVoulue, int32_t valeurEncodeur);
 
 float Accel(int32_t distanceTotale, int32_t distanceRestante);
 
@@ -105,8 +126,13 @@ bool Deplacement_Fini()
 
 void Deplacement_Stop()
 {
-    integraleVitesseG   = 0;
-    integraleVitesseD   = 0;
+#ifdef NEW_PID
+    integrale      = 0;
+    derniereErreur = 0;
+#else
+    integraleVitesseG     = 0;
+    integraleVitesseD     = 0;
+#endif
     commandeVitesse    = COCHES_PAR_MS;
     integralePositionG = 0.0;
     integralePositionD = 0.0;
@@ -117,12 +143,12 @@ void Deplacement_Stop()
 
 /**
  * @brief   Commence un déplacement non-bloquant.
- * 
+ *
  * @param   distanceCM: La distance à faire en centimètres
  * @param   vitesseModifier: Un modificateur de la vitesse.
  *                           À 0, 50% de la vitesse
  *                           À 1, 200% de la vitesse
- * 
+ *
  * @retval  true:  Si le déplacement peut commencer
  * @retval  false: S'il y a déjà un déplacement en cours et qu'on ne peut pas
  *                 en commencer un nouveau.
@@ -202,7 +228,7 @@ void Deplacement_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD)
 
 float vitesseG;
 float vitesseD;
-void Vitesse_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD)
+void  Vitesse_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD)
 {
     // Calcul de la vitesse actuelle du ROBUS   (position2 - position1) / dt
     vitesseG = (float)valeurEncodeurG / TIMER_DELAY_MS;
@@ -211,13 +237,22 @@ void Vitesse_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD)
     // Calcul de la vitesse théorique
     commandeVitesse = Accel(consigneInitiale, commandeG);
 
-    // Calcul du multiplicateur de vitesse
+// Calcul du multiplicateur de vitesse
+#ifdef NEW_PID
+    float multiplicateur = cheeky_pid(commandeVitesse, vitesseG, PID_SPEED);
+#else
     float multiplicateurG = Vitesse_PID_Calculate(vitesseG, commandeVitesse, PID_SPEED_G);
     float multiplicateurD = Vitesse_PID_Calculate(vitesseD, commandeVitesse, PID_SPEED_D);
+#endif
 
-    // Ajustement des vitesses des deux roues
-    MOTOR_SetSpeed(LEFT, PUISSANCE_DEFAULT * multiplicateurG * speedModifier);
-    MOTOR_SetSpeed(RIGHT, (PUISSANCE_DEFAULT * SPD) * multiplicateurD * speedModifier);
+// Ajustement des vitesses des deux roues
+#ifdef NEW_PID
+    MOTOR_SetSpeed(LEFT, PUISSANCE_DEFAULT * multiplicateur);
+    MOTOR_SetSpeed(RIGHT, PUISSANCE_DEFAULT);
+#else
+    MOTOR_SetSpeed(LEFT, PUISSANCE_DEFAULT * multiplicateurG);
+    MOTOR_SetSpeed(RIGHT, PUISSANCE_DEFAULT * multiplicateurD);
+#endif
 }
 
 float Deplacement_PID_Calculate(uint32_t valeur, float cmd, pidPacket PID)
@@ -235,6 +270,7 @@ float Deplacement_PID_Calculate(uint32_t valeur, float cmd, pidPacket PID)
     return *PID.integ + erreur;
 }
 
+#ifndef NEW_PID
 float Vitesse_PID_Calculate(float vitesseActuelle, float cmd, pidPacket pid)
 {
     // Calcul de l'erreur par rapport à la valeur désirée
@@ -243,7 +279,7 @@ float Vitesse_PID_Calculate(float vitesseActuelle, float cmd, pidPacket pid)
     float erreur = cmd - vitesseActuelle * (1 + pid.KP);
 
     // Calcul de la dérivée
-    float deriv = (erreur - erreurVitessePrev) * (pid.KD / ((float)TIMER_DELAY_MS / 1000.0));
+    float deriv = (erreur - erreurVitessePrev) * (pid.KD / DELTA_T);
 
     // Calcul de l'intégrale
     // On multiplie l'erreur par dt (en s), et on l'ajoute au total
@@ -255,6 +291,25 @@ float Vitesse_PID_Calculate(float vitesseActuelle, float cmd, pidPacket pid)
     // Calcul du multiplicateur de vitesse
     return 1 + *pid.integ + deriv + erreur;
 }
+#endif
+
+#ifdef NEW_PID
+float cheeky_pid(float objectif, float valeur, pidPacket pid)
+{
+    // Calcul de l'erreur par rapport à la valeur désirée
+    float erreur = objectif - valeur;
+
+    // Calcul et mise à jour de l'intégrale
+    float integ = *pid.integ += erreur;
+
+    // Calcul de la dérivée et mise à jour de la dernière erreur
+    float deriv = (erreur - *pid.deriv) / DELTA_T;
+    *pid.deriv  = erreur;
+
+    // Calcul du multiplicateur de vitesse
+    return (pid.KP * erreur) + (pid.KI * integ) + (pid.KD * deriv);
+}
+#endif
 
 bool Deplacement_Check(int32_t valeurVoulue, int32_t valeurEncodeur)
 {
@@ -282,9 +337,9 @@ float Accel(int32_t distanceTotale, int32_t distanceRestante)
 
     /*
      * ^ P   _________________
-     * |    /                 \ 
+     * |    /                 \
      * | __/                   \__
-     * |                        
+     * |
      * L-----------------------------> x
      */
 
