@@ -28,10 +28,14 @@ void loop() {
   extern int32_t valEncodeurG;
   extern int32_t valEncodeurD;
 
+  extern float multiplicateurG;
+  extern float multiplicateurD;
+
   if (Deplacement_Fini() == false)
   {
     print("Commande: %ld \t %ld\n", (int32_t)commandeG, (int32_t)(commandeVitesse * 1000));
     print("Vitesse: %ld, %ld\n", (int32_t)(vitesseG * 1000), (int32_t)(vitesseD * 1000));
+    print("mult: %ld, %ld\n", (int32_t)(multiplicateurG * 1000), (int32_t)(multiplicateurD * 1000));
     print("Encodeur: %ld, %ld\n", valEncodeurG, valEncodeurD);
     print("-----\n");
     delay(50);
