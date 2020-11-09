@@ -19,19 +19,23 @@ struct pidPacket
 
 /******************************************************************************/
 /* Constantes --------------------------------------------------------------- */
-#define NEW_PID //Protect this line at all cost
+#define NEW_PID        // Protect this line at all cost
 
 
-#define TIMER_DELAY_MS 50       // Delai entre les mesures et ajustements
+#define TIMER_DELAY_MS 50        // Delai entre les mesures et ajustements
 #define DELTA_T        ((float)TIMER_DELAY_MS / 1000.0)
 
 #define KP_POSITION 0.005f
 #define KI_POSITION 0.00005f
 
 #ifdef NEW_PID
-#define KP_VITESSE 0.15f 
-#define KI_VITESSE 0.0000125f
-#define KD_VITESSE 0.00002f
+#define KP_VITESSE_OBJECTIF  0.001f
+#define KI_VITESSE_OBJECTIF  0.0000125f
+#define KD_VITESSE_OBJECTIF  0.0002f
+
+#define KP_VITESSE_CONSTANCE 0.31f
+#define KI_VITESSE_CONSTANCE 0.0025f
+#define KD_VITESSE_CONSTANCE 0.002f
 #else
 #define KP_VITESSE_G 0.005f
 #define KI_VITESSE_G 0.00005f
@@ -82,8 +86,16 @@ float           integraleVitesseD = 0;
 bool fini = true;
 
 #ifdef NEW_PID
-const pidPacket PID_SPEED_G = {KP_VITESSE, KI_VITESSE, KD_VITESSE, &integraleG, &derniereErreurG};
-const pidPacket PID_SPEED_D = {KP_VITESSE, KI_VITESSE, KD_VITESSE, &integraleD, &derniereErreurD};
+const pidPacket PID_SPEED_OBJECTIF  = {KP_VITESSE_OBJECTIF,
+                                      KI_VITESSE_OBJECTIF,
+                                      KD_VITESSE_OBJECTIF,
+                                      &integraleG,
+                                      &derniereErreurG};
+const pidPacket PID_SPEED_CONSTANCE = {KP_VITESSE_CONSTANCE,
+                                       KI_VITESSE_CONSTANCE,
+                                       KD_VITESSE_CONSTANCE,
+                                       &integraleD,
+                                       &derniereErreurD};
 #else
 const pidPacket PID_SPEED_G       = {KP_VITESSE_G, KI_VITESSE_G, KD_VITESSE_G, &integraleVitesseG};
 const pidPacket PID_SPEED_D       = {KP_VITESSE_D, KI_VITESSE_D, KD_VITESSE_D, &integraleVitesseD};
@@ -117,7 +129,9 @@ void Deplacement_Init()
     // Réinitiatialisation de l'encodeur
     ENCODER_Reset(LEFT);
     ENCODER_Reset(RIGHT);
-
+    print("\n%ld", (int32_t)(KP_VITESSE_CONSTANCE * 1000));
+    print("\n%ld", (int32_t)(KI_VITESSE_CONSTANCE * 1000));
+    print("\n%ld\n", (int32_t)(KD_VITESSE_CONSTANCE * 1000));
     Timer1.initialize((unsigned long)TIMER_DELAY_MS * 1000L);
     Timer1.attachInterrupt(&PID);
 }
@@ -242,12 +256,12 @@ void  Vitesse_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD)
     vitesseD = (float)valeurEncodeurD / TIMER_DELAY_MS;
 
     // Calcul de la vitesse théorique
-    commandeVitesse = COCHES_PAR_MS; //Accel(consigneInitiale, commandeG);
+    commandeVitesse = COCHES_PAR_MS;        // Accel(consigneInitiale, commandeG);
 
 // Calcul du multiplicateur de vitesse
 #ifdef NEW_PID
-    multiplicateurG = cheeky_pid(vitesseD, vitesseG, PID_SPEED_G);
-    multiplicateurD = cheeky_pid(vitesseG, vitesseD, PID_SPEED_D);
+    multiplicateurG = cheeky_pid(commandeVitesse, vitesseG, PID_SPEED_OBJECTIF);
+    multiplicateurD = cheeky_pid(vitesseG, vitesseD, PID_SPEED_CONSTANCE);
 #else
     float multiplicateurG = Vitesse_PID_Calculate(vitesseG, commandeVitesse, PID_SPEED_G);
     float multiplicateurD = Vitesse_PID_Calculate(vitesseD, commandeVitesse, PID_SPEED_D);
@@ -256,7 +270,7 @@ void  Vitesse_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD)
 // Ajustement des vitesses des deux roues
 #ifdef NEW_PID
     MOTOR_SetSpeed(LEFT, PUISSANCE_DEFAULT + multiplicateurG);
-    MOTOR_SetSpeed(RIGHT,PUISSANCE_DEFAULT + multiplicateurD);
+    MOTOR_SetSpeed(RIGHT, PUISSANCE_DEFAULT + multiplicateurD);
 #else
     MOTOR_SetSpeed(LEFT, PUISSANCE_DEFAULT * multiplicateurG);
     MOTOR_SetSpeed(RIGHT, PUISSANCE_DEFAULT * multiplicateurD);
@@ -308,7 +322,7 @@ float cheeky_pid(float objectif, float valeur, pidPacket pid)
     float erreur = objectif - valeur;
 
     // Calcul et mise à jour de l'intégrale
-    float integ = *pid.integ += erreur;
+    float integ = *pid.integ += (erreur * DELTA_T);
 
     // Calcul de la dérivée et mise à jour de la dernière erreur
     float deriv = (erreur - *pid.deriv) / DELTA_T;
@@ -353,7 +367,7 @@ float Accel(int32_t distanceTotale, int32_t distanceRestante)
     // Sous 10% de la distance ou au-dessus de 90%
     if((distance < 0.1 * distanceTotale) || (distance > 0.9 * distanceTotale))
     {
-        return COCHES_PAR_MS * 0.3;
+        return COCHES_PAR_MS * 0.2;
     }
     // Sous 25% de la distance
     if(distance < 0.25 * distanceTotale)
