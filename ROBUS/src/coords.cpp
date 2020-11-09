@@ -31,17 +31,18 @@ const point Rose{500 - MOITIE_CARRE, MOITIE_CARRE};        // Accoté sur le mur
 /******************************************************************************/
 /* Variables ---------------------------------------------------------------- */
 point positionActuelle = {0, 0};
+float angleActuel = 0;
 
 
 /******************************************************************************/
 /* Définition de fonctions -------------------------------------------------- */
 void Coords_Init(int robus)
 {
-    if(robus == 0)
+    if(robus == 0 || robus == 'A')
     {
         positionActuelle = Depart_A;
     }
-    else if(robus == 1)
+    else if(robus == 1 | robus == 'B')
     {
         positionActuelle = Depart_B;
     }
@@ -69,6 +70,7 @@ void Coords_Move(point destination)
 
     // Deplacement
     Deplacement_Ligne(distance);
+    positionActuelle = destination;
 }
 
 void Coords_Move(cible destination)
