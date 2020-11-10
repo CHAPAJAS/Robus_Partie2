@@ -31,7 +31,7 @@ void Coords_Move(point destination);
 void Coords_Move(int32_t x, int32_t y);
 void Coords_Move(cible destination);
 point Coords_PositionActuelle();
-
+void Coords_MoveOffset(int32_t x, int32_t y);
 
 float GetDistanceToPoint(point A, point B);
 float GetAngleToPoint(point A, point B);
