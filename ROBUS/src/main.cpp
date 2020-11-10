@@ -59,11 +59,12 @@ void setup()
     digitalWrite(PIN_YELLOW, HIGH);
 
     BoardInit();
-    Coords_Init(Robus);
-    Deplacement_Init(Robus);
+    /*Coords_Init(Robus);
+    Deplacement_Init(Robus);*/
+
     capteurCouleur_Init(tcs);
 
-    print("\n Début de programme %c : %d --------------------------------- \n",
+    /*print("\n Début de programme %c : %d --------------------------------- \n",
           (Robus == ROBUS_A) ? 'A' : (Robus == ROBUS_B) ? 'B' : 'x',
           millis());
 
@@ -80,14 +81,17 @@ void setup()
     {
         // Erreur! Le robus n'est pas configuré à une version correcte.
         BIIIP();
-    }
+    }*/
 }
 
 void loop()
 {
-    Deplacement_Debug();
-    /*int cible = 0;
-    cible  = RoutineCouleur();*/
+    //Deplacement_Debug();
+    int cible = 0;
+    cible  = RoutineCouleur();
+
+    
+    AffichageCouleur(cible);
 
 }
 
@@ -120,20 +124,22 @@ void AffichageCouleur(int couleur)
 {
     switch(couleur)
     {
-        case COULEUR_RED:
+        case Cible_Rouge:
             digitalWrite(PIN_RED, LOW);
             return;
 
-        case COULEUR_BLUE:
+        case Cible_Bleue:
             digitalWrite(PIN_BLUE, LOW);
             return;
 
-        case COULEUR_YELLOW:
+        case Cible_Jaune:
             digitalWrite(PIN_YELLOW, LOW);
             return;
 
         default:
-            BIIIP();
+            //BIIIP();
+
+            break;
     }
 }
 
@@ -157,4 +163,5 @@ int RoutineCouleur()
     {
         return Cible_Bleue;
     }
+    return 0;
 }
