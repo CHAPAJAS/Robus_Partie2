@@ -41,7 +41,7 @@ void setup()
 
     // Conditions initiales
     // Deplacement_Ligne(100);
-    Coords_Move(Cible_Pastille);
+    // Coords_Move(Cible_Pastille);
 
 
     // Appelle la fonction principale correspondante
@@ -74,21 +74,43 @@ void RoutineB()
 {
     // Deplacement_Ligne(200);
     int distanceQuille;
+    int cptDistance = 0;
+    /*distanceQuille= distanceSonar();
+    Serial.println(distanceQuille);
+    delay(1000);
+    distanceQuille= distanceSonar();
+    Serial.println(distanceQuille);
+    delay(1000);
+    distanceQuille= distanceSonar();
+    Serial.println(distanceQuille);
+    delay(1000);
+    distanceQuille= distanceSonar();
+    Serial.println(distanceQuille);
+    delay(1000);
+    */
 
+    
     Deplacement_Ligne(200);
+    cptDistance+=200;
     distanceQuille = distanceSonar();
     print("distance quille %d\n", distanceQuille);
-    while(distanceQuille > 75)
+    while(distanceQuille > 50)
     {
         delay(DELAY_LECTURE);
         
-        if(Deplacement_Fini())
+        if(Deplacement_Fini() && cptDistance<400)
         {
             Deplacement_Ligne(200);
+            cptDistance+=200;
+        }
+        else if(Deplacement_Fini() && cptDistance>300)
+        {
+            Deplacement_Ligne(75);
         }
         distanceQuille = distanceSonar();
         print("dist: %d\n", distanceQuille);
     }
+    delay(500);
     Deplacement_Stop();
 
     // virage a droite
