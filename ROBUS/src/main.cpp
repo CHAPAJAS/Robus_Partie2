@@ -38,10 +38,11 @@ void setup()
     print("\n Début de programme : %d --------------------------------- \n", millis());
 
     // Conditions initiales
-    Deplacement_Ligne(100);
+    // Deplacement_Ligne(100);
+    Coords_Move(Cible_Pastille);
 
 
-    // Appelle la fonction principale correspondant
+    // Appelle la fonction principale correspondante
     if(Robus == ROBUS_A)
     {
         RoutineA();
@@ -52,7 +53,7 @@ void setup()
     }
     else
     {
-        // Erreur! Le robus n'est pas configuré à une version correcte
+        // Erreur! Le robus n'est pas configuré à une version correcte.
         BIIIP();
     }
 }

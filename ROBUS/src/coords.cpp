@@ -13,14 +13,17 @@
 #define LARGEUR_CARRE 30     // cm
 #define MOITIE_CARRE  LARGEUR_CARRE / 2
 
+#define OFFSET_A 0
+#define OFFSET_B 0
+
 
 /******************************************************************************/
 /* Constantes --------------------------------------------------------------- */
 const point Depart_A{MOITIE_CARRE, 75};    // Départ du robot A
 const point Depart_B{MOITIE_CARRE, 25};    // Départ du robot B
 
-const point Pastille{100 + MOITIE_CARRE, HAUTEUR_PISTE / 2};    // Pastille de couleur, 1m du début
-const point Balle{200 + 50, HAUTEUR_PISTE / 2};                 // Balle à 2.5m du début
+const point Pastille{100, 50};                     // Pastille de couleur, 1m du début
+const point Balle{200 + 50, HAUTEUR_PISTE / 2};    // Balle à 2.5m du début
 
 const point Jaune{300 + 1, MOITIE_CARRE};    // A ACTUALISER
 const point Bleu{400 + MOITIE_CARRE, HAUTEUR_PISTE - MOITIE_CARRE};
@@ -31,6 +34,7 @@ const point Rose{500 - MOITIE_CARRE, MOITIE_CARRE};    // Accoté sur le mur du 
 /* Variables ---------------------------------------------------------------- */
 point positionActuelle = {0, 0};
 float angleActuel      = 0;
+float angleOffset      = 0;
 
 
 /******************************************************************************/
@@ -40,10 +44,12 @@ void Coords_Init(int robus)
     if(robus == 0 || robus == 'A')
     {
         positionActuelle = Depart_A;
+        angleOffset      = OFFSET_A;
     }
-    else if(robus == 1 | robus == 'B')
+    else if(robus == 1 || robus == 'B')
     {
         positionActuelle = Depart_B;
+        angleOffset      = OFFSET_B;
     }
     else
     {
@@ -62,23 +68,36 @@ void Coords_Move(point destination)
     }
 
     float distance = GetDistanceToPoint(positionActuelle, destination);
-    // float angle    = GetAngleToPoint(positionActuelle, destination);
+    // Si le y de la destination est plus élevé que le y actuel, il faut avoir un angle négatif
+    // (tourner à gauche).
+    float angle    = (destination.y == positionActuelle.y) ? 0 : (destination.y > positionActuelle.y) ? 90 : -90;//GetAngleToPoint(positionActuelle, destination);
+    angle += angleOffset;
+
+    // debugging avancé
+    print("Moving to: (%d, %d) à %ld\n", destination.x, destination.y, (int32_t)angle);
+
+    // Deplacement sur l'axe des x
+    Deplacement_Ligne(abs(destination.x - positionActuelle.x));
 
     // Rotation
-    // A IMPLEMENTER
+    Deplacement_Virage(angle);
 
     // Deplacement
-    Deplacement_Ligne(distance);
+    Deplacement_Ligne(abs(destination.y - positionActuelle.y));
+    // Deplacement_Ligne(distance);
+
+    // Contre-rotation
+    Deplacement_Virage(-angle);
 
     // Actualisation de la position et de l'angle
     positionActuelle = destination;
-    // angleActuel += angle;
+    angleActuel += angle;
 }
 
 void Coords_Move(int32_t x, int32_t y)
 {
     // Appelle la vraie fonction 'Move' avec les points
-    Coords_Move({x, y});
+    Coords_Move({(int16_t)x, (int16_t)y});
 }
 
 void Coords_Move(cible destination)
