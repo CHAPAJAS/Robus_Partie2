@@ -33,7 +33,7 @@ void setup()
     // Initialisations
     BoardInit();
     Coords_Init(Robus);
-    Deplacement_Init();
+    Deplacement_Init(Robus);
 
     print("\n Début de programme : %d --------------------------------- \n", millis());
 
@@ -52,7 +52,7 @@ void setup()
     }
     else
     {
-        // Erreur!
+        // Erreur! Le robus n'est pas configuré à une version correcte
         BIIIP();
     }
 }
