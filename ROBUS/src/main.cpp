@@ -22,7 +22,8 @@ void setup()
     print("\n Début de programme : %d --------------------------------- \n", millis());
 
     // Conditions initiales
-    Deplacement_Ligne(100);
+    // Deplacement_Ligne(100);
+    Coords_Move(Cible_Pastille);
 }
 
 void loop()

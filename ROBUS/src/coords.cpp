@@ -13,6 +13,9 @@
 #define LARGEUR_CARRE 30     // cm
 #define MOITIE_CARRE  LARGEUR_CARRE / 2
 
+#define OFFSET_A    0
+#define OFFSET_B    0
+
 
 /******************************************************************************/
 /* Constantes --------------------------------------------------------------- */
@@ -31,6 +34,7 @@ const point Rose{500 - MOITIE_CARRE, MOITIE_CARRE};    // Accoté sur le mur du 
 /* Variables ---------------------------------------------------------------- */
 point positionActuelle = {0, 0};
 float angleActuel      = 0;
+float angleOffset      = 0;
 
 
 /******************************************************************************/
@@ -40,10 +44,12 @@ void Coords_Init(int robus)
     if(robus == 0 || robus == 'A')
     {
         positionActuelle = Depart_A;
+        angleOffset = OFFSET_A;
     }
     else if(robus == 1 | robus == 'B')
     {
         positionActuelle = Depart_B;
+        angleOffset = OFFSET_B;
     }
     else
     {
@@ -63,6 +69,7 @@ void Coords_Move(point destination)
 
     float distance = GetDistanceToPoint(positionActuelle, destination);
     // float angle    = GetAngleToPoint(positionActuelle, destination);
+    // angle += angleOffset;
 
     // Rotation
     // A IMPLEMENTER
