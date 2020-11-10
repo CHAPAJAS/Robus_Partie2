@@ -51,7 +51,7 @@ class TimerOne
 	char oldSREG;					// To hold Status Register while ints disabled
 
     // methods
-    void initialize(long microseconds=1000000);
+    void initialize(unsigned long microseconds=1000000);
     void start();
     void stop();
     void restart();
@@ -61,7 +61,7 @@ class TimerOne
     void disablePwm(char pin);
     void attachInterrupt(void (*isr)(), long microseconds=-1);
     void detachInterrupt();
-    void setPeriod(long microseconds);
+    void setPeriod(unsigned long microseconds);
     void setPwmDuty(char pin, int duty);
     void (*isrCallback)();
 };
