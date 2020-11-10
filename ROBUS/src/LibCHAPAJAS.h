@@ -46,7 +46,7 @@
 #define sizeof_array(tableau) (int)(sizeof(tableau) / sizeof(tableau[0]))
 
 
-#define BIIIP() AX_BuzzerON(500, 2)
+#define BIIIP() AX_BuzzerON(500, 2000)
 
 
 

@@ -17,7 +17,7 @@ void setup()
     // Initialisations
     BoardInit();
     Coords_Init(ROBUS);
-    Deplacement_Init();
+    Deplacement_Init(ROBUS);
 
     print("\n Début de programme : %d --------------------------------- \n", millis());
 

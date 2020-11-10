@@ -19,19 +19,28 @@ struct pidPacket
 
 /******************************************************************************/
 /* Constantes --------------------------------------------------------------- */
-#define NEW_PID        // Protect this line at all cost
+#define NEW_PID    // Protect this line at all costs
 
+#define ENCODEUR_GAUCHE_360_A (int32_t)8169
+#define ENCODEUR_DROIT_360_A  (int32_t)7667
+#define ENCODEUR_GAUCHE_360_B (int32_t)7700
+#define ENCODEUR_DROIT_360_B  (int32_t)7840
 
-#define TIMER_DELAY_MS 50        // Delai entre les mesures et ajustements
+#define ANGULOD_A 0.98
+#define ANGULOG_A 0.955
+#define ANGULOD_B 0.961
+#define ANGULOG_B 0.95
+
+#define TIMER_DELAY_MS 50    // Delai entre les mesures et ajustements
 #define DELTA_T        ((float)TIMER_DELAY_MS / 1000.0)
 
 #define KP_POSITION 0.005f
 #define KI_POSITION 0.00005f
 
 #ifdef NEW_PID
-#define KP_VITESSE_OBJECTIF  0.001f
-#define KI_VITESSE_OBJECTIF  0.0000125f
-#define KD_VITESSE_OBJECTIF  0.0002f
+#define KP_VITESSE_OBJECTIF 0.001f
+#define KI_VITESSE_OBJECTIF 0.0000125f
+#define KD_VITESSE_OBJECTIF 0.0002f
 
 #define KP_VITESSE_CONSTANCE 0.288f
 #define KI_VITESSE_CONSTANCE 0.000125f
@@ -45,17 +54,18 @@ struct pidPacket
 #define KD_VITESSE_D 0.02f
 #endif
 
-#define MARGE_VALEUR 50        // Vérification de position en nombre de coches
+#define MARGE_VALEUR 50    // Vérification de position en nombre de coches
 
 #define COCHES_DANS_TOUR 3200
 #define DIAMETRE_ROUE    (3 * 2.54)
 #define DIAMETRE_TOUR    18.5
 
-#define TEMPS_POUR_METRE 3000         // ms pour traverser 1m à 0.5
-#define COCHES_PAR_MS    4.456        // Coches par ms
+#define TEMPS_POUR_METRE 3000     // ms pour traverser 1m à 0.5
+#define COCHES_PAR_MS    4.456    // Coches par ms
 
 #define PUISSANCE_DEFAULT 0.5
 
+#define DELAY_VIRAGE 1000
 
 
 /******************************************************************************/
@@ -63,7 +73,7 @@ struct pidPacket
 int32_t tempsRequis      = 0;
 int32_t consigneInitiale = 0;
 
-float speedModifier = 1;        // Multiplie la vitesse
+float speedModifier = 1;    // Multiplie la vitesse
 
 float commandeG          = 0;
 float commandeD          = 0;
@@ -84,6 +94,12 @@ float           integraleVitesseD = 0;
 #endif
 
 bool fini = true;
+
+int32_t constanteEncodeurG = 0;
+int32_t constanteEncodeurD = 0;
+float   angulo_g           = 0;
+float   angulo_d           = 0;
+
 
 #ifdef NEW_PID
 const pidPacket PID_SPEED_OBJECTIF  = {KP_VITESSE_OBJECTIF,
@@ -121,11 +137,33 @@ bool Deplacement_Check(int32_t valeurVoulue, int32_t valeurEncodeur);
 
 float Accel(int32_t distanceTotale, int32_t distanceRestante);
 
+void Virage_Gauche(int angle);
+void Virage_Droit(int angle);
+
 
 /******************************************************************************/
 /* Définitions de fonctions ------------------------------------------------- */
-void Deplacement_Init()
+void Deplacement_Init(int robus)
 {
+    if(robus == 0 || robus == 'A')
+    {
+        constanteEncodeurG = ENCODEUR_GAUCHE_360_A;
+        constanteEncodeurD = ENCODEUR_DROIT_360_A;
+        angulo_d           = ANGULOD_A;
+        angulo_g           = ANGULOG_A;
+    }
+    else if(robus == 1 | robus == 'B')
+    {
+        constanteEncodeurG = ENCODEUR_GAUCHE_360_A;
+        constanteEncodeurD = ENCODEUR_DROIT_360_A;
+        angulo_d           = ANGULOD_B;
+        angulo_g           = ANGULOG_B;
+    }
+    else
+    {
+        BIIIP();
+    }
+
     // Réinitiatialisation de l'encodeur
     ENCODER_Reset(LEFT);
     ENCODER_Reset(RIGHT);
@@ -256,7 +294,7 @@ void  Vitesse_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD)
     vitesseD = (float)valeurEncodeurD / TIMER_DELAY_MS;
 
     // Calcul de la vitesse théorique
-    commandeVitesse = COCHES_PAR_MS;        // Accel(consigneInitiale, commandeG);
+    commandeVitesse = COCHES_PAR_MS;    // Accel(consigneInitiale, commandeG);
 
 // Calcul du multiplicateur de vitesse
 #ifdef NEW_PID
@@ -386,3 +424,65 @@ float Accel(int32_t distanceTotale, int32_t distanceRestante)
     // Reste des valeurs
     return COCHES_PAR_MS * 0.7;
 }
+
+void Deplacement_Virage(int angle)
+{
+#if VIRAGES == false
+    return;
+#endif
+
+    for(; abs(angle) > 100; angle = (angle >= 0) ? angle - 90 : angle + 90)
+    {
+        Deplacement_Virage((angle % 90 == 0) ? ((angle >= 0) ? 90 : -90) : angle % 90);
+        delay(DELAY_VIRAGE);
+    }
+
+    print("Virage de %d°\n", angle);
+    if(angle < 0)
+    {
+        angle = angle * -1;
+        Virage_Gauche(angle);
+    }
+    else
+    {
+        Virage_Droit(angle);
+    }
+}
+
+void Virage_Droit(int angle)
+{
+    ENCODER_ReadReset(0);
+    ENCODER_ReadReset(1);
+
+    long valeurEncodeurGauche = ENCODER_Read(0);
+
+    while(valeurEncodeurGauche <= constanteEncodeurG / (360 / (angle * angulo_d)))
+    {
+        MOTOR_SetSpeed(0, 0.3);
+        MOTOR_SetSpeed(1, -0.3);
+        valeurEncodeurGauche = ENCODER_Read(0);
+    }
+
+    MOTOR_SetSpeed(0, 0);
+    MOTOR_SetSpeed(1, 0);
+}
+
+
+void Virage_Gauche(int angle)
+{
+    ENCODER_ReadReset(0);
+    ENCODER_ReadReset(1);
+
+    long valeurEncodeurDroit = ENCODER_Read(1);
+
+    while(valeurEncodeurDroit <= constanteEncodeurD / (360 / (angle * angulo_g)))
+    {
+        MOTOR_SetSpeed(0, -0.3);
+        MOTOR_SetSpeed(1, 0.3);
+        valeurEncodeurDroit = ENCODER_Read(1);
+    }
+
+    MOTOR_SetSpeed(0, 0);
+    MOTOR_SetSpeed(1, 0);
+}
+
