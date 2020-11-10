@@ -1,8 +1,13 @@
 /******************************************************************************/
 /* Inclusions --------------------------------------------------------------- */
+#include "Adafruit_TCS34725.h"
 #include "LibCHAPAJAS.h"
+#include "capteurs.h"
 #include "coords.h"
 #include "deplacement.h"
+#include <Wire.h>
+#include <string.h>
+
 
 
 /******************************************************************************/
@@ -28,6 +33,12 @@ void RoutineB();
 int  RobusVersionDetection();
 
 void AffichageCouleur(int couleur);
+int  RoutineCouleur();
+
+
+/******************************************************************************/
+/* Variables ---------------------------------------------------------------- */
+Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_154MS, TCS34725_GAIN_1X);
 
 
 /******************************************************************************/
@@ -50,6 +61,7 @@ void setup()
     BoardInit();
     Coords_Init(Robus);
     Deplacement_Init(Robus);
+    capteurCouleur_Init(tcs);
 
     print("\n Début de programme %c : %d --------------------------------- \n",
           (Robus == ROBUS_A) ? 'A' : (Robus == ROBUS_B) ? 'B' : 'x',
@@ -119,5 +131,27 @@ void AffichageCouleur(int couleur)
 
         default:
             BIIIP();
+    }
+}
+
+int RoutineCouleur()
+{
+    struct RGB couleur;
+    char       nomCouleur[100] = "";
+    saisirRGB(tcs, &couleur);
+    detecterCouleur(couleur, nomCouleur);
+    Serial.println(nomCouleur);
+
+    if(strcmp(nomCouleur, "Rouge") == 0)
+    {
+        return Cible_Rouge;
+    }
+    else if(strcmp(nomCouleur, "Jaune") == 0)
+    {
+        return Cible_Jaune;
+    }
+    else if(strcmp(nomCouleur, "Blue") == 0)
+    {
+        return Cible_Bleue;
     }
 }

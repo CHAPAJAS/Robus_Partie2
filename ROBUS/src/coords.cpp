@@ -124,7 +124,7 @@ void Coords_Move(cible destination)
         case Cible_Bleue:
             Coords_Move(Bleu);
             return;
-        case Cible_Rose:
+        case Cible_Rouge:
             Coords_Move(Rose);
             return;
 

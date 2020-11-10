@@ -19,7 +19,7 @@ typedef enum
     Cible_Balle,
     Cible_Jaune,
     Cible_Bleue,
-    Cible_Rose
+    Cible_Rouge
 }cible;
 
 
