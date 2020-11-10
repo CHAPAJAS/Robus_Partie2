@@ -84,9 +84,11 @@ void RoutineB()
     Deplacement_Stop();
        
     //virage a droite
-    if(distanceQuille<85) //le fait avancer 10cm de plus pour compenser l'incertitude distance 
-                            //si pas trop proche de 1m(largeur de la piste)
-        distanceQuille+=10;
+    if(distanceQuille<85) //le fait avancer 10cm de plus pour compenser l'incertitude distance si pas trop proche de 1m(largeur de la piste)
+         {
+            distanceQuille+=10;
+         }                   
+        
     Deplacement_Ligne(distanceQuille);
     while(!ROBUS_IsBumper(2))
     {}
