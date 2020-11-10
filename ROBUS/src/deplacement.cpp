@@ -19,43 +19,44 @@ struct pidPacket
 
 /******************************************************************************/
 /* Constantes --------------------------------------------------------------- */
-#define NEW_PID        // Protect this line at all cost
+#define NEW_PID    // Protect this line at all cost
 
 
-#define TIMER_DELAY_MS 50        // Delai entre les mesures et ajustements
+#define TIMER_DELAY_MS 50    // Delai entre les mesures et ajustements
 #define DELTA_T        ((float)TIMER_DELAY_MS / 1000.0)
 
 #define KP_POSITION 0.005f
 #define KI_POSITION 0.00005f
 
-#ifdef NEW_PID
-#define KP_VITESSE_OBJECTIF  0.001f
-#define KI_VITESSE_OBJECTIF  0.0000125f
-#define KD_VITESSE_OBJECTIF  0.0002f
+#define KP_VITESSE_OBJECTIF 0.001f
+#define KI_VITESSE_OBJECTIF 0.0000125f
+#define KD_VITESSE_OBJECTIF 0.0002f
 
 #define KP_VITESSE_CONSTANCE 0.288f
 #define KI_VITESSE_CONSTANCE 0.000125f
 #define KD_VITESSE_CONSTANCE 0.000125f
-#else
-#define KP_VITESSE_G 0.005f
-#define KI_VITESSE_G 0.00005f
-#define KD_VITESSE_G 0.02f
-#define KP_VITESSE_D 0.005f
-#define KI_VITESSE_D 0.00005f
-#define KD_VITESSE_D 0.02f
-#endif
 
-#define MARGE_VALEUR 50        // Vérification de position en nombre de coches
+#define MARGE_VALEUR 50    // Vérification de position en nombre de coches
 
 #define COCHES_DANS_TOUR 3200
 #define DIAMETRE_ROUE    (3 * 2.54)
 #define DIAMETRE_TOUR    18.5
 
-#define TEMPS_POUR_METRE 3000         // ms pour traverser 1m à 0.5
-#define COCHES_PAR_MS    4.456        // Coches par ms
+#define TEMPS_POUR_METRE 3000     // ms pour traverser 1m à 0.5
+#define COCHES_PAR_MS    4.456    // Coches par ms
 
 #define PUISSANCE_DEFAULT 0.5
 
+
+
+/******************************************************************************/
+/* Variables globales pour debug -------------------------------------------- */
+int32_t valEncodeurG;
+int32_t valEncodeurD;
+float   vitesseG;
+float   vitesseD;
+float   multiplicateurG;
+float   multiplicateurD;
 
 
 /******************************************************************************/
@@ -63,7 +64,7 @@ struct pidPacket
 int32_t tempsRequis      = 0;
 int32_t consigneInitiale = 0;
 
-float speedModifier = 1;        // Multiplie la vitesse
+float speedModifier = 1;    // Multiplie la vitesse
 
 float commandeG          = 0;
 float commandeD          = 0;
@@ -72,20 +73,13 @@ float integralePositionD = 0.0;
 
 float commandeVitesse = COCHES_PAR_MS;
 
-#ifdef NEW_PID
 float integraleG      = 0;
 float integraleD      = 0;
 float derniereErreurG = 0;
 float derniereErreurD = 0;
-#else
-float           erreurVitessePrev = 0;
-float           integraleVitesseG = 0;
-float           integraleVitesseD = 0;
-#endif
 
 bool fini = true;
 
-#ifdef NEW_PID
 const pidPacket PID_SPEED_OBJECTIF  = {KP_VITESSE_OBJECTIF,
                                       KI_VITESSE_OBJECTIF,
                                       KD_VITESSE_OBJECTIF,
@@ -96,12 +90,8 @@ const pidPacket PID_SPEED_CONSTANCE = {KP_VITESSE_CONSTANCE,
                                        KD_VITESSE_CONSTANCE,
                                        &integraleD,
                                        &derniereErreurD};
-#else
-const pidPacket PID_SPEED_G       = {KP_VITESSE_G, KI_VITESSE_G, KD_VITESSE_G, &integraleVitesseG};
-const pidPacket PID_SPEED_D       = {KP_VITESSE_D, KI_VITESSE_D, KD_VITESSE_D, &integraleVitesseD};
-#endif
-const pidPacket PID_POSITION_G = {KP_POSITION, KI_POSITION, 0, &integralePositionG, nullptr};
-const pidPacket PID_POSITION_D = {KP_POSITION, KI_POSITION, 0, &integralePositionD, nullptr};
+const pidPacket PID_POSITION_G      = {KP_POSITION, KI_POSITION, 0, &integralePositionG, nullptr};
+const pidPacket PID_POSITION_D      = {KP_POSITION, KI_POSITION, 0, &integralePositionD, nullptr};
 
 
 /******************************************************************************/
@@ -143,15 +133,10 @@ bool Deplacement_Fini()
 
 void Deplacement_Stop()
 {
-#ifdef NEW_PID
-    integraleG      = 0;
-    integraleD      = 0;
-    derniereErreurG = 0;
-    derniereErreurD = 0;
-#else
-    integraleVitesseG     = 0;
-    integraleVitesseD     = 0;
-#endif
+    integraleG         = 0;
+    integraleD         = 0;
+    derniereErreurG    = 0;
+    derniereErreurD    = 0;
     commandeVitesse    = COCHES_PAR_MS;
     integralePositionG = 0.0;
     integralePositionD = 0.0;
@@ -204,9 +189,6 @@ bool Deplacement_Ligne(int distanceCM, float vitesseModifier)
     return true;
 }
 
-int32_t valEncodeurG;
-int32_t valEncodeurD;
-
 void PID()
 {
     // Arrête tout si on a fini le déplacement
@@ -245,36 +227,23 @@ void Deplacement_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD)
     commandeD = Deplacement_PID_Calculate(valeurEncodeurD, commandeD, PID_POSITION_D);
 }
 
-float vitesseG;
-float vitesseD;
-float multiplicateurG;
-float multiplicateurD;
-void  Vitesse_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD)
+
+void Vitesse_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD)
 {
     // Calcul de la vitesse actuelle du ROBUS   (position2 - position1) / dt
     vitesseG = (float)valeurEncodeurG / TIMER_DELAY_MS;
     vitesseD = (float)valeurEncodeurD / TIMER_DELAY_MS;
 
     // Calcul de la vitesse théorique
-    commandeVitesse = COCHES_PAR_MS;        // Accel(consigneInitiale, commandeG);
+    commandeVitesse = COCHES_PAR_MS;    // Accel(consigneInitiale, commandeG);
 
-// Calcul du multiplicateur de vitesse
-#ifdef NEW_PID
+    // Calcul du multiplicateur de vitesse
     multiplicateurG = cheeky_pid(commandeVitesse, vitesseG, PID_SPEED_OBJECTIF);
     multiplicateurD = cheeky_pid(vitesseG, vitesseD, PID_SPEED_CONSTANCE);
-#else
-    float multiplicateurG = Vitesse_PID_Calculate(vitesseG, commandeVitesse, PID_SPEED_G);
-    float multiplicateurD = Vitesse_PID_Calculate(vitesseD, commandeVitesse, PID_SPEED_D);
-#endif
 
-// Ajustement des vitesses des deux roues
-#ifdef NEW_PID
+    // Ajustement des vitesses des deux roues
     MOTOR_SetSpeed(LEFT, PUISSANCE_DEFAULT + multiplicateurG);
     MOTOR_SetSpeed(RIGHT, PUISSANCE_DEFAULT + multiplicateurD);
-#else
-    MOTOR_SetSpeed(LEFT, PUISSANCE_DEFAULT * multiplicateurG);
-    MOTOR_SetSpeed(RIGHT, PUISSANCE_DEFAULT * multiplicateurD);
-#endif
 }
 
 float Deplacement_PID_Calculate(uint32_t valeur, float cmd, pidPacket PID)
@@ -292,30 +261,6 @@ float Deplacement_PID_Calculate(uint32_t valeur, float cmd, pidPacket PID)
     return *PID.integ + erreur;
 }
 
-#ifndef NEW_PID
-float Vitesse_PID_Calculate(float vitesseActuelle, float cmd, pidPacket pid)
-{
-    // Calcul de l'erreur par rapport à la valeur désirée
-    // Une valeur de `erreur` négative indique qu'on va trop vite
-    // Une valeur de `erreur` positive indique qu'on va pas assez vite
-    float erreur = cmd - vitesseActuelle * (1 + pid.KP);
-
-    // Calcul de la dérivée
-    float deriv = (erreur - erreurVitessePrev) * (pid.KD / DELTA_T);
-
-    // Calcul de l'intégrale
-    // On multiplie l'erreur par dt (en s), et on l'ajoute au total
-    *pid.integ += erreur * ((TIMER_DELAY_MS / 1000) * pid.KI);
-
-    // Mise à jour de l'ancienne erreur
-    erreurVitessePrev = erreur;
-
-    // Calcul du multiplicateur de vitesse
-    return 1 + *pid.integ + deriv + erreur;
-}
-#endif
-
-#ifdef NEW_PID
 float cheeky_pid(float objectif, float valeur, pidPacket pid)
 {
     // Calcul de l'erreur par rapport à la valeur désirée
@@ -331,7 +276,6 @@ float cheeky_pid(float objectif, float valeur, pidPacket pid)
     // Calcul du multiplicateur de vitesse
     return (pid.KP * erreur) + (pid.KI * integ) + (pid.KD * deriv);
 }
-#endif
 
 bool Deplacement_Check(int32_t valeurVoulue, int32_t valeurEncodeur)
 {
@@ -385,4 +329,41 @@ float Accel(int32_t distanceTotale, int32_t distanceRestante)
 
     // Reste des valeurs
     return COCHES_PAR_MS * 0.7;
+}
+
+
+/**
+ * @brief Fonction d'affichage de debug pour les différentes variables importantes du PID
+ */
+void Deplacement_Debug()
+{
+    static bool done = false;
+
+    if(done == false)
+    {
+        if(Deplacement_Fini() == false)
+        {
+            print("Commande: %ld \t %ld\n", (int32_t)commandeG, (int32_t)(commandeVitesse * 1000));
+            print("Vitesse: %ld, %ld\n", (int32_t)(vitesseG * 1000), (int32_t)(vitesseD * 1000));
+            print("mult: %ld, %ld\n",
+                  (int32_t)(multiplicateurG * 1000),
+                  (int32_t)(multiplicateurD * 1000));
+            print("Encodeur: %ld, %ld, %ld\n",
+                  valEncodeurG,
+                  valEncodeurD,
+                  (valEncodeurG - valEncodeurD));
+            print("-----\n");
+            delay(50);
+        }
+        else
+        {
+            print(
+              "\n"
+              "Déplacement terminé à %d, cmdG: %ld, cmdD: %ld\n",
+              millis(),
+              commandeG,
+              commandeD);
+            done = true;
+        }
+    }
 }
