@@ -83,7 +83,7 @@ SpaceBeforeCtorInitializerColon:    true
 SpaceBeforeInheritanceColon:        true
 SpaceBeforeParens:                  Never
 SpaceBeforeRangeBasedForLoopColon:  true
-SpacesBeforeTrailingComments:       8
+SpacesBeforeTrailingComments:       4
 
 SpaceInEmptyParentheses:            false
 SpacesInAngles:                     false

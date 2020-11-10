@@ -3,6 +3,15 @@
 #include "LibCHAPAJAS.h"
 
 
-void Deplacement_Init();
-bool Deplacement_Fini();
+/******************************************************************************/
+/* Déclarations de fonctions ------------------------------------------------ */
+void Deplacement_Init(int robus);
+
 bool Deplacement_Ligne(int distanceCM);
+void Deplacement_Stop();
+
+void Deplacement_Virage(int angle);
+
+bool Deplacement_Fini();
+
+void Deplacement_Debug();
