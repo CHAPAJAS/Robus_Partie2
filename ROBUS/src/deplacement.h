@@ -13,5 +13,6 @@ void Deplacement_Stop();
 void Deplacement_Virage(int angle);
 
 bool Deplacement_Fini();
+void Deplacement_Wait();
 
 void Deplacement_Debug();

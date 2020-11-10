@@ -168,6 +168,16 @@ bool Deplacement_Fini()
     return fini;
 }
 
+
+/**
+ * @brief   Attend tant que le déplacement actuel n'est pas terminé
+ */
+void Deplacement_Wait()
+{
+    while(Deplacement_Fini() == false)
+    {}
+}
+
 void Deplacement_Stop()
 {
     integraleG         = 0;
@@ -404,10 +414,6 @@ void Deplacement_Debug()
 }
 void Deplacement_Virage(int angle)
 {
-#if VIRAGES == false
-    return;
-#endif
-
     for(; abs(angle) > 100; angle = (angle >= 0) ? angle - 90 : angle + 90)
     {
         Deplacement_Virage((angle % 90 == 0) ? ((angle >= 0) ? 90 : -90) : angle % 90);

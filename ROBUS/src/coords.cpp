@@ -78,12 +78,14 @@ void Coords_Move(point destination)
 
     // Deplacement sur l'axe des x
     Deplacement_Ligne(abs(destination.x - positionActuelle.x));
+    Deplacement_Wait();
 
     // Rotation
     Deplacement_Virage(angle);
 
     // Deplacement
     Deplacement_Ligne(abs(destination.y - positionActuelle.y));
+    Deplacement_Wait();
     // Deplacement_Ligne(distance);
 
     // Contre-rotation
@@ -136,6 +138,14 @@ void Coords_Move(cible destination)
 point Coords_PositionActuelle()
 {
     return positionActuelle;
+}
+
+void Coords_MoveOffset(int32_t x, int32_t y)
+{
+    x += positionActuelle.x;
+    y += positionActuelle.y;
+
+    Coords_Move({x, y});
 }
 
 float GetDistanceToPoint(point A, point B)
