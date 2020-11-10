@@ -1,6 +1,9 @@
 #include<Adafruit_TCS34725.h>
 #include<Wire.h>
 
+#define ROUGE "Rouge"
+#define JAUNE "Jaune"
+#define BLUE "Blue"
 
 /******************************************************************************/
 /* Déclarations de fonctions ------------------------------------------------ */

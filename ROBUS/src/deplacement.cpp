@@ -330,8 +330,6 @@ int32_t CMtoCoche(int32_t valeurCM)
     return valeurCoche;
 }
 
-<<<<<<< HEAD
-=======
 
 float Accel(int32_t distanceTotale, int32_t distanceRestante)
 {
@@ -464,4 +462,3 @@ void Virage_Gauche(int angle)
     MOTOR_SetSpeed(0, 0);
     MOTOR_SetSpeed(1, 0);
 }
->>>>>>> c291ac85a540344b66dcb4fff6840e0b29eb9f41

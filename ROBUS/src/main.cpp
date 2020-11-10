@@ -73,6 +73,9 @@ void setup()
 void loop()
 {
     Deplacement_Debug();
+    /*int cible = 0;
+    cible  = RoutineCouleur();*/
+
 }
 
 
@@ -92,15 +95,15 @@ int RoutineCouleur()
     detecterCouleur(couleur, nomCouleur);
     Serial.println(nomCouleur);
 
-    if(strcmp(nomCouleur, "Rouge") == 0)
+    if(strcmp(nomCouleur, ROUGE) == 0)
     {
         return Cible_Rouge;
     }
-    else if(strcmp(nomCouleur, "Jaune") == 0)
+    else if(strcmp(nomCouleur, JAUNE) == 0)
     {
         return Cible_Jaune;
     }
-    else if(strcmp(nomCouleur, "Blue") == 0)
+    else if(strcmp(nomCouleur, BLUE) == 0)
     {
         return Cible_Bleue;
     }

@@ -4,9 +4,7 @@
 #include <string.h>
 
 #define MARGE 3
-#define ROUGE "Rouge"
-#define JAUNE "Jaune"
-#define BLUE "Blue"
+
 
 /*-----Initialiser les fonctions-------------*/
 // void imprimerRGB();
