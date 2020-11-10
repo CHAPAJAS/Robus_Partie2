@@ -3,6 +3,7 @@
 #include "LibCHAPAJAS.h"
 #include "coords.h"
 #include "deplacement.h"
+#include "sonar.h"
 
 
 /******************************************************************************/
@@ -71,5 +72,23 @@ void RoutineA()
 
 void RoutineB()
 {
+    int distanceQuille ;
+    delay(6900);// attendre que le robot A soit parti
+    Deplacement_Ligne(500);
+    distanceQuille = distanceSonar();
+    while(distanceQuille > 100)
+    {
+        delay(100);
+        distanceQuille = distanceSonar();
+    }
+    Deplacement_Stop();
+       
     //virage a droite
+    if(distanceQuille<85) //le fait avancer 10cm de plus pour compenser l'incertitude distance 
+                            //si pas trop proche de 1m(largeur de la piste)
+        distanceQuille+=10;
+    Deplacement_Ligne(distanceQuille);
+    while(!ROBUS_IsBumper(2))
+    {}
+    Deplacement_Stop();
 }
