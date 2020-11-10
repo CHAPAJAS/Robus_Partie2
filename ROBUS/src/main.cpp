@@ -10,6 +10,7 @@
 /* Defines ------------------------------------------------------------------ */
 #define PIN_ROBUS 13
 
+#define DELAY_LECTURE   20
 #define ROBUS_A 0
 #define ROBUS_B 1
 
@@ -67,30 +68,39 @@ void loop()
 
 void RoutineA()
 {
-    
 }
 
 void RoutineB()
 {
-    int distanceQuille ;
-    delay(6900);// attendre que le robot A soit parti
-    Deplacement_Ligne(500);
+    // Deplacement_Ligne(200);
+    int distanceQuille;
+
+    Deplacement_Ligne(200);
     distanceQuille = distanceSonar();
-    while(distanceQuille > 100)
+    print("distance quille %d\n", distanceQuille);
+    while(distanceQuille > 75)
     {
-        delay(100);
+        delay(DELAY_LECTURE);
+        
+        if(Deplacement_Fini())
+        {
+            Deplacement_Ligne(200);
+        }
         distanceQuille = distanceSonar();
+        print("dist: %d\n", distanceQuille);
     }
     Deplacement_Stop();
-       
-    //virage a droite
-    if(distanceQuille<85) //le fait avancer 10cm de plus pour compenser l'incertitude distance si pas trop proche de 1m(largeur de la piste)
-         {
-            distanceQuille+=10;
-         }                   
-        
-    Deplacement_Ligne(distanceQuille);
+
+    // virage a droite
+    if(distanceQuille < 85)        // le fait avancer 10cm de plus pour compenser l'incertitude
+                                   // distance si pas trop proche de 1m(largeur de la piste)
+    {
+        distanceQuille += 10;
+    }
+
+    // Deplacement_Ligne(distanceQuille);
     while(!ROBUS_IsBumper(2))
-    {}
+    {
+    }
     Deplacement_Stop();
 }
