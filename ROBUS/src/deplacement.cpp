@@ -21,6 +21,9 @@
 #define ANGULOD_B 0.961
 #define ANGULOG_B 0.95
 
+#define SPD_A 1
+#define SPD_B 1.05
+
 // Temps
 #define TIMER_DELAY_MS 50    // Delai entre les mesures et ajustements
 #define DELTA_T        ((float)TIMER_DELAY_MS / 1000.0)
@@ -47,7 +50,7 @@
 // Variables de déplacement
 #define TEMPS_POUR_METRE  3000     // ms pour traverser 1m à 0.5
 #define COCHES_PAR_MS     4.456    // Coches par ms
-#define PUISSANCE_DEFAULT 0.5
+#define PUISSANCE_DEFAULT 0.3
 
 
 /******************************************************************************/
@@ -83,6 +86,7 @@ int32_t constanteEncodeurG = 0;
 int32_t constanteEncodeurD = 0;
 float   angulo_g           = 0;
 float   angulo_d           = 0;
+float   spd                = 0;
 
 const pidPacket PID_SPEED_OBJECTIF  = {KP_VITESSE_OBJECTIF,
                                       KI_VITESSE_OBJECTIF,
@@ -125,6 +129,7 @@ void Deplacement_Init(int robus)
         constanteEncodeurD = ENCODEUR_DROIT_360_A;
         angulo_d           = ANGULOD_A;
         angulo_g           = ANGULOG_A;
+        spd                = SPD_A;
     }
     else if((robus == 1) || (robus == 'B'))
     {
@@ -132,6 +137,7 @@ void Deplacement_Init(int robus)
         constanteEncodeurD = ENCODEUR_DROIT_360_A;
         angulo_d           = ANGULOD_B;
         angulo_g           = ANGULOG_B;
+        spd                = SPD_B;
     }
     else
     {
@@ -275,7 +281,7 @@ void Vitesse_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD)
 
     // Ajustement des vitesses des deux roues
     MOTOR_SetSpeed(LEFT, PUISSANCE_DEFAULT + multiplicateurG);
-    MOTOR_SetSpeed(RIGHT, PUISSANCE_DEFAULT + multiplicateurD);
+    MOTOR_SetSpeed(RIGHT, (PUISSANCE_DEFAULT + multiplicateurD) * spd);
 }
 
 

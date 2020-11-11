@@ -1,13 +1,10 @@
 /******************************************************************************/
 /* Inclusions --------------------------------------------------------------- */
-#include "../lib/Adafruit_TCS34725/Adafruit_TCS34725.h"
 #include "LibCHAPAJAS.h"
 #include "analog.h"
 #include "capteurs.h"
 #include "coords.h"
 #include "deplacement.h"
-#include "pidMaths.h"
-#include "suiveur.h"
 
 
 /******************************************************************************/
@@ -15,15 +12,12 @@
 #define PIN_ROBUS        13
 #define PIN_HIGH_VERSION 11
 
-
 #define COULEUR_RED    0
 #define COULEUR_BLUE   1
 #define COULEUR_YELLOW 2
 
 #define ROBUS_A 0
 #define ROBUS_B 1
-
-//#define OVERKILL
 
 
 /******************************************************************************/
@@ -48,7 +42,6 @@ void setup()
     Deplacement_Init(Robus);
     capteurCouleur_Init();
     analogsetup();    // sifflet
-    Suiveur_Init();
 
     print("\n Début de programme %c : %d --------------------------------- \n",
           (Robus == ROBUS_A) ? 'A' : (Robus == ROBUS_B) ? 'B' : 'x',
@@ -82,44 +75,8 @@ void RoutineA()
 {
 }
 
-#ifdef OVERKILL
-float     integ = 0;
-float     deriv = 0;
-pidPacket couleurPID{1, 1, 1, &integ, &deriv};
-#endif
-
 void RoutineB()
 {
-    int compteurSuiveur = 0;
-    int startTime       = millis();
-
-    while(Deplacement_Fini() == false)
-    {
-        delay(10);
-        if(Suiveur_IsOnLine() == true)
-        {
-            compteurSuiveur++;
-        }
-        else
-        {
-            compteurSuiveur--;
-        }
-    }
-
-#ifdef OVERKILL
-    float ajustementAngle = PID_Calculate(0.0, compteurSuiveur, couleurPID, millis() - startTime);
-#endif
-
-#ifndef OVERKILL
-    if(compteurSuiveur >= 5)
-    {
-        Coords_AjusterOffsetAngle(-1);
-    }
-    else if(compteurSuiveur <= -5)
-    {
-        Coords_AjusterOffsetAngle(1);
-    }
-#endif
 }
 
 int RobusVersionDetection()
