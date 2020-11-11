@@ -57,11 +57,13 @@ void setup()
 
     // Initialisations
     BoardInit();
+
+
     Coords_Init(Robus);
     Deplacement_Init(Robus);
     capteurCouleur_Init();
     analogsetup();    // sifflet
-    
+
     print("\n Début de programme %c : %d --------------------------------- \n",
           (Robus == ROBUS_A) ? 'A' : (Robus == ROBUS_B) ? 'B' : 'x',
           millis());
@@ -83,25 +85,30 @@ void setup()
         // Erreur! Le robus n'est pas configuré à une version correcte.
         BIIIP();
     }
+
+    /*for (int i = 0; i < 5; i++)
+    {
+        Deplacement_Virage(-90);
+        delay(2000);
+    }*/
 }
 
 void loop()
 {
-    //Deplacement_Debug();
+    // Deplacement_Debug();
     /*int cible = 0;
     cible  = RoutineCouleur();*/
 
-    
-    //AffichageCouleur(cible);
+
+    // AffichageCouleur(cible);
 
     /*SERVO_Enable(0);
-    SERVO_SetAngle(0, 180); 
+    SERVO_SetAngle(0, 180);
     delay(3000);
     MOTOR_SetSpeed(0, 0.25);
     MOTOR_SetSpeed(1, 0.25);*/
-    //SERVO_SetAngle(0, 90);
-    //delay(2000);
-    
+    // SERVO_SetAngle(0, 90);
+    // delay(2000);
 }
 
 
@@ -112,9 +119,6 @@ void RoutineA()
 
     // Déplace vers la couleur
     Coords_Move(CIBLE_PASTILLE);
-
-   
-
 }
 
 void RoutineB()
@@ -122,12 +126,17 @@ void RoutineB()
     // Commence un déplacement de 2m
     Deplacement_Ligne(DISTANCE_B);
 
-    int cptDistance    = DISTANCE_B;
-    int distanceQuille = distanceSonar();
+    delay(2000);
 
-    while(distanceQuille > 50)
+    int cptDistance    = DISTANCE_B;
+    int distanceQuille;
+    do
     {
-        delay(DELAY_LECTURE);
+        if(ROBUS_IsBumper(FRONT) == true)
+        {
+            print("bumper");
+            break;
+        }
 
         if(Deplacement_Fini() && cptDistance < 400)
         {
@@ -140,29 +149,22 @@ void RoutineB()
         }
         distanceQuille = distanceSonar();
         print("dist: %d\n", distanceQuille);
-    }
+
+        delay(DELAY_LECTURE);
+    } while(distanceQuille > 45);
+    
     delay(500);
     Deplacement_Stop();
 
+    delay(1000);
+
     // virage a gauche
     Deplacement_Virage(-90);
+    delay(500);
 
-    if(distanceQuille < 85)    // le fait avancer 10cm de plus pour compenser l'incertitude
-                               // distance si pas trop proche de 1m(largeur de la piste)
-    {
-        distanceQuille += 10;
-    }
+    Deplacement_Ligne(75);
+}
 
-    Deplacement_Ligne(distanceQuille);
-    while(!ROBUS_IsBumper(FRONT))
-    {
-    }
-    Deplacement_Stop();
-}
-void routine_couleur()
-{
-    
-}
 int RobusVersionDetection()
 {
     // La pin 11 est mise à HIGH sur les deux robots

@@ -187,6 +187,21 @@ void Deplacement_Stop()
     fini               = true;
 }
 
+void Deplacement_Continue()
+{
+    integraleG         = 0;
+    integraleD         = 0;
+    derniereErreurG    = 0;
+    derniereErreurD    = 0;
+    commandeVitesse    = COCHES_PAR_MS;
+    integralePositionG = 0.0;
+    integralePositionD = 0.0;
+    commandeG          = 0;
+    commandeD          = 0;
+    fini               = false;
+}
+
+
 /**
  * @brief   Commence un déplacement non-bloquant.
  *

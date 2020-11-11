@@ -9,6 +9,8 @@ void Deplacement_Init(int robus);
 
 bool Deplacement_Ligne(int distanceCM);
 void Deplacement_Stop();
+void Deplacement_Continue();
+
 
 void Deplacement_Virage(int angle);
 
