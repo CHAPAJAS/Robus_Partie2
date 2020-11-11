@@ -55,27 +55,35 @@ void capteurCouleur_Init()
     digitalWrite(PIN_YELLOW, HIGH);
 }
 
-void RoutineCouleur()
+int RoutineCouleur()
 {
     struct RGB  couleur;
     static char nomCouleur[100] = "";
 
     saisirRGB(&tcs, &couleur);
     detecterCouleur(couleur, nomCouleur);
-    // Serial.println(nomCouleur);
+    print("%s\n", nomCouleur);
 
     if(strcmp(nomCouleur, "Rouge") == 0)
     {
         AffichageCouleur(ROUGE);
+        return ROUGE;
     }
     else if(strcmp(nomCouleur, "Jaune") == 0)
     {
         AffichageCouleur(JAUNE);
+        return JAUNE;
     }
     else if(strcmp(nomCouleur, "Bleu") == 0)
     {
         AffichageCouleur(BLEU);
+        return BLEU;
     }
+    else
+    {
+        return COULEUR_INCONNUE;
+    }
+    
 }
 
 void saisirRGB(Adafruit_TCS34725* tcs, struct RGB* rawCouleur)
