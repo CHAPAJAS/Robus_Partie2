@@ -65,22 +65,6 @@ void setup()
     capteurCouleur_Init();
     analogsetup();    // sifflet
 
-    // Monte le bras
-    SERVO_Enable(LEFT);
-    SERVO_Enable(RIGHT);
-
-
-    SERVO_SetAngle(LEFT, 180);
-    SERVO_SetAngle(RIGHT, 180);
-    delay(2000);
-    SERVO_SetAngle(LEFT, 90);
-    SERVO_SetAngle(RIGHT, 90);
-    delay(2000);
-    SERVO_SetAngle(LEFT, 45);
-    SERVO_SetAngle(RIGHT, 45);
-    delay(2000);
-    SERVO_SetAngle(LEFT, 0);
-    SERVO_SetAngle(RIGHT, 0);
 
 
     print("\n Début de programme %c : %d --------------------------------- \n",
@@ -93,6 +77,13 @@ void setup()
     // Appelle la fonction principale correspondante
     if(Robus == ROBUS_A)
     {
+        Deplacement_Ligne(100);
+
+        SERVO_Enable(RIGHT);
+
+        delay(2000);
+        SERVO_SetAngle(RIGHT, 110);
+
         // RoutineA();
     }
     else if(Robus == ROBUS_B)
@@ -126,7 +117,7 @@ void RoutineA()
     Coords_Move(CIBLE_BALLE);
 
     // Ramasser la balle
-    SERVO_SetAngle(LEFT, ANGLE_FILET_DOWN);
+    // SERVO_SetAngle(LEFT, ANGLE_FILET_DOWN);
 
     // Déplacement vers la cible de couleur
     switch(couleur)

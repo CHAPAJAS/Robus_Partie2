@@ -4,6 +4,7 @@
 #include "pidMaths.h"
 
 #include "../Timer/TimerOne.h"
+#include "../Timer/TimerThree.h"
 
 
 /******************************************************************************/
@@ -152,8 +153,8 @@ void Deplacement_Init(int robus)
     print("\n%ld", (int32_t)(KP_VITESSE_CONSTANCE * 1000));
     print("\n%ld", (int32_t)(KI_VITESSE_CONSTANCE * 1000));
     print("\n%ld\n", (int32_t)(KD_VITESSE_CONSTANCE * 1000));
-    Timer1.initialize((unsigned long)TIMER_DELAY_MS * 1000L);
-    Timer1.attachInterrupt(&PID);
+    Timer3.initialize((unsigned long)TIMER_DELAY_MS * 1000L);
+    Timer3.attachInterrupt(&PID);
 }
 
 bool Deplacement_Fini()
@@ -250,6 +251,8 @@ void PID()
 
     // Actualisation du temps
     tempsRequis -= TIMER_DELAY_MS;
+
+    print("%d\n", millis());
 }
 
 
