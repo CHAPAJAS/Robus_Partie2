@@ -6,7 +6,7 @@
 #include <math.h>
 
 
-/******************************************************************************/
+/*****************************s*************************************************/
 /* Définitions -------------------------------------------------------------- */
 #define LONGEUR_PISTE 500    // cm
 #define HAUTEUR_PISTE 100    // cm
@@ -15,6 +15,8 @@
 
 #define OFFSET_A 0
 #define OFFSET_B 0
+
+#define DELAY_DEPLACEMENT   250
 
 
 /******************************************************************************/
@@ -67,10 +69,13 @@ void Coords_Move(point destination)
         return;
     }
 
-    float distance = GetDistanceToPoint(positionActuelle, destination);
+    //float distance = GetDistanceToPoint(positionActuelle, destination);
     // Si le y de la destination est plus élevé que le y actuel, il faut avoir un angle négatif
     // (tourner à gauche).
-    float angle    = (destination.y == positionActuelle.y) ? 0 : (destination.y > positionActuelle.y) ? 90 : -90;//GetAngleToPoint(positionActuelle, destination);
+    float angle = (destination.y == positionActuelle.y)
+                    ? 0 : (destination.y > positionActuelle.y)
+                    ? -90 : 90; // Choisi un angle de 90° ou -90°
+    // GetAngleToPoint(positionActuelle, destination);
     angle += angleOffset;
 
     // debugging avancé
@@ -79,52 +84,57 @@ void Coords_Move(point destination)
     // Deplacement sur l'axe des x
     Deplacement_Ligne(abs(destination.x - positionActuelle.x));
     Deplacement_Wait();
+    delay(DELAY_DEPLACEMENT);
+
 
     // Rotation
     Deplacement_Virage(angle);
+    delay(DELAY_DEPLACEMENT);
 
-    // Deplacement
+    // Deplacement sur l'axe des y
     Deplacement_Ligne(abs(destination.y - positionActuelle.y));
     Deplacement_Wait();
+    delay(DELAY_DEPLACEMENT);
     // Deplacement_Ligne(distance);
 
     // Contre-rotation
     Deplacement_Virage(-angle);
+    delay(DELAY_DEPLACEMENT);
 
     // Actualisation de la position et de l'angle
     positionActuelle = destination;
     angleActuel += angle;
 }
 
-void Coords_Move(int32_t x, int32_t y)
+void Coords_Move(int16_t x, int16_t y)
 {
     // Appelle la vraie fonction 'Move' avec les points
-    Coords_Move({(int16_t)x, (int16_t)y});
+    Coords_Move({x, y});
 }
 
-void Coords_Move(cible destination)
+void Coords_Move(int destination)
 {
     switch(destination)
     {
-        case Cible_DepartA:
+        case CIBLE_DEPART_A:
             Coords_Move(Depart_A);
             return;
-        case Cible_DepartB:
+        case CIBLE_DEPART_B:
             Coords_Move(Depart_B);
             return;
-        case Cible_Pastille:
+        case CIBLE_PASTILLE:
             Coords_Move(Pastille);
             return;
-        case Cible_Balle:
+        case CIBLE_BALLE:
             Coords_Move(Balle);
             return;
-        case Cible_Jaune:
+        case CIBLE_JAUNE:
             Coords_Move(Jaune);
             return;
-        case Cible_Bleue:
+        case CIBLE_BLEUE:
             Coords_Move(Bleu);
             return;
-        case Cible_Rouge:
+        case CIBLE_ROUGE:
             Coords_Move(Rose);
             return;
 
@@ -140,12 +150,17 @@ point Coords_PositionActuelle()
     return positionActuelle;
 }
 
-void Coords_MoveOffset(int32_t x, int32_t y)
+void Coords_MoveOffset(int16_t x, int16_t y)
 {
     x += positionActuelle.x;
     y += positionActuelle.y;
 
     Coords_Move({x, y});
+}
+
+void Coords_AjusterOffsetAngle(int16_t angleAjustement)
+{
+    angleOffset += angleAjustement;
 }
 
 float GetDistanceToPoint(point A, point B)
