@@ -93,6 +93,14 @@ void loop()
     
     AffichageCouleur(cible);
 
+    /*SERVO_Enable(0);
+    SERVO_SetAngle(0, 180); 
+    delay(3000);
+    MOTOR_SetSpeed(0, 0.25);
+    MOTOR_SetSpeed(1, 0.25);*/
+    //SERVO_SetAngle(0, 90);
+    //delay(2000);
+    
 }
 
 
