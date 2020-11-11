@@ -5,6 +5,22 @@
 #include "capteurs.h"
 #include "coords.h"
 #include "deplacement.h"
+#include "sonar.h"
+
+
+/******************************************************************************/
+/* Defines ------------------------------------------------------------------ */
+#define PIN_ROBUS 13
+
+#define DELAY_LECTURE   20
+#define ROBUS_A 0
+#define ROBUS_B 1
+
+
+/******************************************************************************/
+/* Déclarations de fonctions ------------------------------------------------ */
+void RoutineA();
+void RoutineB();
 
 
 /******************************************************************************/
@@ -78,13 +94,44 @@ void RoutineA()
 
 void RoutineB()
 {
-    Deplacement_Ligne(100);
-    while(ROBUS_IsBumper(FRONT) == false)
+    int distanceQuille;
+    int cptDistance = 0;
+    
+    Deplacement_Ligne(200);
+    cptDistance+=200;
+    distanceQuille = distanceSonar();
+    print("distance quille %d\n", distanceQuille);
+    while(distanceQuille > 50)
     {
-        Deplacement_Debug();
+        delay(DELAY_LECTURE);
+        
+        if(Deplacement_Fini() && cptDistance<400)
+        {
+            Deplacement_Ligne(200);
+            cptDistance+=200;
+        }
+        else if(Deplacement_Fini() && cptDistance>300)
+        {
+            Deplacement_Ligne(75);
+        }
+        distanceQuille = distanceSonar();
+        print("dist: %d\n", distanceQuille);
+    }
+    delay(500);
+    Deplacement_Stop();
+
+    // virage a droite
+    if(distanceQuille < 85)        // le fait avancer 10cm de plus pour compenser l'incertitude
+                                   // distance si pas trop proche de 1m(largeur de la piste)
+    {
+        distanceQuille += 10;
+    }
+
+    // Deplacement_Ligne(distanceQuille);
+    while(!ROBUS_IsBumper(2))
+    {
     }
     Deplacement_Stop();
-    BIIIP();
 }
 
 int RobusVersionDetection()
