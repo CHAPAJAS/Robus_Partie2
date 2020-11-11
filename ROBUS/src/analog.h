@@ -2,4 +2,4 @@
 
 void analogsetup();
 
-void analogloop();
+void analogWait();

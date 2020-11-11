@@ -10,20 +10,22 @@ void setup() {
   // put your setup code here, to run once:
   Deplacement_Init();
   BoardInit();
-  analogsetup();
+  //analogsetup();
+  
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  // SERVO_Enable(0);
-  // SERVO_SetAngle(0,0);
-  // delay(3000);
-  //  SERVO_SetAngle(0,175);
-  // delay(3000);
-  // SERVO_Disable(0);
-  analogloop();
-  delay(50);
-  //while (true)
+   //SERVO_Disable(0);
+   SERVO_Enable(0);
+   SERVO_SetAngle(0,103);
+   delay(2000);
+    SERVO_SetAngle(0,180);
+   //delay(3000);
+   
+  //analogWait();
+ // delay(50);
+  while (true)
   {
     
   }
