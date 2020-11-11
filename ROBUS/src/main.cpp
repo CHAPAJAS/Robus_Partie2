@@ -77,6 +77,13 @@ void setup()
     // Appelle la fonction principale correspondante
     if(Robus == ROBUS_A)
     {
+        Deplacement_Ligne(100);
+
+        SERVO_Enable(RIGHT);
+
+        delay(2000);
+        SERVO_SetAngle(RIGHT, 110);
+
         // RoutineA();
     }
     else if(Robus == ROBUS_B)
@@ -130,7 +137,7 @@ void RoutineA()
     Coords_Move(CIBLE_BALLE);
 
     // Ramasser la balle
-    SERVO_SetAngle(LEFT, ANGLE_FILET_DOWN);
+    // SERVO_SetAngle(LEFT, ANGLE_FILET_DOWN);
 
     // Déplacement vers la cible de couleur
     switch(couleur)
