@@ -11,10 +11,11 @@
 /******************************************************************************/
 /* Defines ------------------------------------------------------------------ */
 #define PIN_ROBUS 13
+#define ROBUS_A   0
+#define ROBUS_B   1
 
-#define DELAY_LECTURE   20
-#define ROBUS_A 0
-#define ROBUS_B 1
+#define DELAY_LECTURE 20
+#define DISTANCE_B    200
 
 
 /******************************************************************************/
@@ -58,7 +59,7 @@ void setup()
     Deplacement_Init(Robus);
     capteurCouleur_Init();
     analogsetup();    // sifflet
-
+    
     print("\n Début de programme %c : %d --------------------------------- \n",
           (Robus == ROBUS_A) ? 'A' : (Robus == ROBUS_B) ? 'B' : 'x',
           millis());
@@ -84,7 +85,6 @@ void setup()
 
 void loop()
 {
-    
 }
 
 
@@ -94,41 +94,42 @@ void RoutineA()
 
 void RoutineB()
 {
-    int distanceQuille;
-    int cptDistance = 0;
-    
-    Deplacement_Ligne(200);
-    cptDistance+=200;
-    distanceQuille = distanceSonar();
-    print("distance quille %d\n", distanceQuille);
+    // Commence un déplacement de 2m
+    Deplacement_Ligne(DISTANCE_B);
+
+    int cptDistance    = DISTANCE_B;
+    int distanceQuille = distanceSonar();
+
     while(distanceQuille > 50)
     {
         delay(DELAY_LECTURE);
-        
-        if(Deplacement_Fini() && cptDistance<400)
+
+        if(Deplacement_Fini() && cptDistance < 400)
         {
-            Deplacement_Ligne(200);
-            cptDistance+=200;
+            Deplacement_Ligne(DISTANCE_B);
+            cptDistance += DISTANCE_B;
         }
-        else if(Deplacement_Fini() && cptDistance>300)
+        else if(Deplacement_Fini() && cptDistance > 300)
         {
             Deplacement_Ligne(75);
         }
         distanceQuille = distanceSonar();
         print("dist: %d\n", distanceQuille);
     }
-    delay(500);
     Deplacement_Stop();
+    delay(500);
 
-    // virage a droite
-    if(distanceQuille < 85)        // le fait avancer 10cm de plus pour compenser l'incertitude
-                                   // distance si pas trop proche de 1m(largeur de la piste)
+    // virage a gauche
+    Deplacement_Virage(-90);
+
+    if(distanceQuille < 85)    // le fait avancer 10cm de plus pour compenser l'incertitude
+                               // distance si pas trop proche de 1m(largeur de la piste)
     {
         distanceQuille += 10;
     }
 
     // Deplacement_Ligne(distanceQuille);
-    while(!ROBUS_IsBumper(2))
+    while(!ROBUS_IsBumper(FRONT))
     {
     }
     Deplacement_Stop();
