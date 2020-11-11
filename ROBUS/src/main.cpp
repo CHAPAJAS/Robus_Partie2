@@ -49,11 +49,9 @@ void setup()
           (Robus == ROBUS_A) ? 'A' : (Robus == ROBUS_B) ? 'B' : 'x',
           millis());
     // attendre le coup de sifflet
-    analogWait();
-
-    print("Reçu bip");
-    BIIIP();
-
+    SERVO_Enable(0);
+    SERVO_SetAngle(0,120);
+    Deplacement_Virage(-360);
 
     // Appelle la fonction principale correspondante
     if(Robus == ROBUS_A)

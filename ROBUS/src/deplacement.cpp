@@ -27,8 +27,8 @@ struct pidPacket
 #define ENCODEUR_DROIT_360_B  (int32_t)7840
 
 // Multiplicateurs d'angles pour les rotations
-#define ANGULOD_A 0.98
-#define ANGULOG_A 0.955
+#define ANGULOD_A 0.932
+#define ANGULOG_A 0.972
 #define ANGULOD_B 0.961
 #define ANGULOG_B 0.95
 
