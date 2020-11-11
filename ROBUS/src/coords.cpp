@@ -16,6 +16,8 @@
 #define OFFSET_A 0
 #define OFFSET_B 0
 
+#define DELAY_DEPLACEMENT   250
+
 
 /******************************************************************************/
 /* Constantes --------------------------------------------------------------- */
@@ -67,14 +69,13 @@ void Coords_Move(point destination)
         return;
     }
 
-    float distance = GetDistanceToPoint(positionActuelle, destination);
+    //float distance = GetDistanceToPoint(positionActuelle, destination);
     // Si le y de la destination est plus élevé que le y actuel, il faut avoir un angle négatif
     // (tourner à gauche).
     float angle = (destination.y == positionActuelle.y)
-                    ? 0
-                    : (destination.y > positionActuelle.y)
-                        ? 90
-                        : -90;    // GetAngleToPoint(positionActuelle, destination);
+                    ? 0 : (destination.y > positionActuelle.y)
+                    ? -90 : 90; // Choisi un angle de 90° ou -90°
+    // GetAngleToPoint(positionActuelle, destination);
     angle += angleOffset;
 
     // debugging avancé
@@ -83,27 +84,32 @@ void Coords_Move(point destination)
     // Deplacement sur l'axe des x
     Deplacement_Ligne(abs(destination.x - positionActuelle.x));
     Deplacement_Wait();
+    delay(DELAY_DEPLACEMENT);
+
 
     // Rotation
     Deplacement_Virage(angle);
+    delay(DELAY_DEPLACEMENT);
 
-    // Deplacement
+    // Deplacement sur l'axe des y
     Deplacement_Ligne(abs(destination.y - positionActuelle.y));
     Deplacement_Wait();
+    delay(DELAY_DEPLACEMENT);
     // Deplacement_Ligne(distance);
 
     // Contre-rotation
     Deplacement_Virage(-angle);
+    delay(DELAY_DEPLACEMENT);
 
     // Actualisation de la position et de l'angle
     positionActuelle = destination;
     angleActuel += angle;
 }
 
-void Coords_Move(int32_t x, int32_t y)
+void Coords_Move(int16_t x, int16_t y)
 {
     // Appelle la vraie fonction 'Move' avec les points
-    Coords_Move({(int16_t)x, (int16_t)y});
+    Coords_Move({x, y});
 }
 
 void Coords_Move(int destination)
@@ -144,12 +150,17 @@ point Coords_PositionActuelle()
     return positionActuelle;
 }
 
-void Coords_MoveOffset(int32_t x, int32_t y)
+void Coords_MoveOffset(int16_t x, int16_t y)
 {
     x += positionActuelle.x;
     y += positionActuelle.y;
 
     Coords_Move({x, y});
+}
+
+void Coords_AjusterOffsetAngle(int16_t angleAjustement)
+{
+    angleOffset += angleAjustement;
 }
 
 float GetDistanceToPoint(point A, point B)

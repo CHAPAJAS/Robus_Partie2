@@ -175,7 +175,9 @@ bool Deplacement_Fini()
 void Deplacement_Wait()
 {
     while(Deplacement_Fini() == false)
-    {}
+    {
+        Deplacement_Debug();
+    }
 }
 
 void Deplacement_Stop()

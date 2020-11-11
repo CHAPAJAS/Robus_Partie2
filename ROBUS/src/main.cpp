@@ -6,6 +6,7 @@
 #include "capteurs.h"
 #include "coords.h"
 #include "deplacement.h"
+#include "suiveur.h"
 
 
 /******************************************************************************/
@@ -44,16 +45,14 @@ void setup()
     Deplacement_Init(Robus);
     capteurCouleur_Init();
     analogsetup();    // sifflet
+    Suiveur_Init();
 
     print("\n Début de programme %c : %d --------------------------------- \n",
           (Robus == ROBUS_A) ? 'A' : (Robus == ROBUS_B) ? 'B' : 'x',
           millis());
+
     // attendre le coup de sifflet
-    analogWait();
-
-    print("Reçu bip");
-    BIIIP();
-
+    // analogWait();
 
     // Appelle la fonction principale correspondante
     if(Robus == ROBUS_A)
@@ -78,11 +77,34 @@ void loop()
 
 void RoutineA()
 {
-    // Coords_MoveOffset(50, 25);
 }
 
 void RoutineB()
 {
+    int compteurSuiveur = 0;
+
+    while(Deplacement_Fini() == false)
+    {
+        delay(10);
+        if (Suiveur_IsOnLine() == true)
+        {
+            compteurSuiveur++;
+        }
+        else
+        {
+            compteurSuiveur--;
+        }
+    }
+
+    if (compteurSuiveur >= 5)
+    {
+        Coords_AjusterOffsetAngle(-1);
+    }
+    else if (compteurSuiveur <= -5)
+    {
+        Coords_AjusterOffsetAngle(1);
+    }
+    
 }
 
 int RobusVersionDetection()

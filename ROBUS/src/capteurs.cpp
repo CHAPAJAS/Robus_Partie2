@@ -1,7 +1,6 @@
 /*****************************************************************************/
 /* Inclusions -------------------------------------------------------------- */
 #include "capteurs.h"
-#include "Adafruit_TCS34725.h"
 #include <Wire.h>
 #include <string.h>
 
@@ -14,20 +13,19 @@
 #define PIN_BLUE   9
 #define PIN_YELLOW 10
 
-#define ROUGE 0
-#define JAUNE 1
-#define BLEU  2
-
-
 
 /*****************************************************************************/
 /* Variables --------------------------------------------------------------- */
 Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_154MS, TCS34725_GAIN_1X);
 
+
 /*****************************************************************************/
 /* Déclarations de fonctions ----------------------------------------------- */
 void AffichageCouleur(int couleur);
-void saisirRGB(Adafruit_TCS34725 tcs, struct RGB* rawCouleur);
+bool DetecterRouge(struct RGB couleur);
+bool DetecterBleu(struct RGB couleur);
+bool DetecterJaune(struct RGB couleur);
+bool DetecterVert(struct RGB couleur);
 
 // void imprimerRGB();
 
@@ -64,6 +62,7 @@ void capteurCouleur_Init()
     else
     {
         Serial.println("No TCS34725 found ... check your connections");
+        BIIIP();
     }
 
     // Now we're ready to get readings!
@@ -71,11 +70,12 @@ void capteurCouleur_Init()
 
 void RoutineCouleur()
 {
-    struct RGB couleur;
-    char       nomCouleur[100] = "";
-    saisirRGB(tcs, &couleur);
+    struct RGB  couleur;
+    static char nomCouleur[100] = "";
+
+    saisirRGB(&tcs, &couleur);
     detecterCouleur(couleur, nomCouleur);
-    Serial.println(nomCouleur);
+    // Serial.println(nomCouleur);
 
     if(strcmp(nomCouleur, "Rouge") == 0)
     {
@@ -91,13 +91,12 @@ void RoutineCouleur()
     }
 }
 
-void saisirRGB(Adafruit_TCS34725 tcs, struct RGB* rawCouleur)
-{    //
-
+void saisirRGB(Adafruit_TCS34725* tcs, struct RGB* rawCouleur)
+{
     struct RGB couleurTemp;
     uint16_t   r, g, b, c;    // colorTemp, lux;
 
-    tcs.getRawData(&r, &g, &b, &c);
+    tcs->getRawData(&r, &g, &b, &c);
     // colorTemp = tcs.calculateColorTemperature(r, g, b);
     // lux = tcs.calculateLux(r, g, b);
 
@@ -116,11 +115,11 @@ void saisirRGB(Adafruit_TCS34725 tcs, struct RGB* rawCouleur)
     couleurTemp.green *= 256;
     couleurTemp.blue *= 256;
 
-    Serial.print("\t");
-    Serial.print((int)couleurTemp.red, DEC);
-    Serial.print((int)couleurTemp.green, DEC);
-    Serial.print((int)couleurTemp.blue, DEC);
-    Serial.print("\n");
+    // Serial.print("\t");
+    // Serial.print((int)couleurTemp.red, DEC);
+    // Serial.print((int)couleurTemp.green, DEC);
+    // Serial.print((int)couleurTemp.blue, DEC);
+    // Serial.print("\n");
 
     rawCouleur->red   = couleurTemp.red;
     rawCouleur->green = couleurTemp.green;
@@ -129,26 +128,19 @@ void saisirRGB(Adafruit_TCS34725 tcs, struct RGB* rawCouleur)
 
 void detecterCouleur(struct RGB couleur, char* couleurDetecte)
 {
-
-    if((couleur.red <= 92 + MARGE && couleur.red >= 92 - MARGE)
-       && (couleur.green >= 80 - MARGE && couleur.green <= 80 + MARGE)
-       && (couleur.blue >= 69 - MARGE && couleur.blue <= 69 + MARGE))
+    if(DetecterRouge(couleur) == true)
     {
-        // Rouge  928069
+
         strcpy(couleurDetecte, "Rouge");
     }
-    else if((couleur.red <= 69 + MARGE && couleur.red >= 69 - MARGE)
-            && (couleur.green >= 95 - MARGE && couleur.green <= 95 + MARGE)
-            && (couleur.blue >= 76 - MARGE && couleur.blue <= 76 + MARGE))
+    else if(DetecterBleu(couleur) == true)
     {
-        // Blue  699576
+
         strcpy(couleurDetecte, "Bleu");
     }
-    else if((couleur.red <= 91 + MARGE && couleur.red >= 91 - MARGE)
-            && (couleur.green >= 95 - MARGE && couleur.green <= 95 + MARGE)
-            && (couleur.blue >= 53 - MARGE && couleur.blue <= 53 + MARGE))
+    else if(DetecterJaune(couleur) == true)
     {
-        // Jaune  919553
+
         strcpy(couleurDetecte, "Jaune");
     }
     else
@@ -157,6 +149,77 @@ void detecterCouleur(struct RGB couleur, char* couleurDetecte)
     }
 
     // Serial.println(couleurDetecte);
+}
+int detecterCouleur(struct RGB couleur)
+{
+    if(DetecterRouge(couleur) == true)
+    {
+        return ROUGE;
+    }
+    else if(DetecterBleu(couleur) == true)
+    {
+        return BLEU;
+    }
+    else if(DetecterJaune(couleur) == true)
+    {
+        return JAUNE;
+    }
+    else if(DetecterVert(couleur) == true)
+    {
+        return VERT;
+    }
+    else
+    {
+        return -1;
+    }
+}
+
+bool DetecterRouge(struct RGB couleur)
+{
+    // Rouge  928069
+    if((couleur.red <= 92 + MARGE && couleur.red >= 92 - MARGE)
+       && (couleur.green >= 80 - MARGE && couleur.green <= 80 + MARGE)
+       && (couleur.blue >= 69 - MARGE && couleur.blue <= 69 + MARGE))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+bool DetecterBleu(struct RGB couleur)
+{
+    // Blue  699576
+    if((couleur.red <= 69 + MARGE && couleur.red >= 69 - MARGE)
+       && (couleur.green >= 95 - MARGE && couleur.green <= 95 + MARGE)
+       && (couleur.blue >= 76 - MARGE && couleur.blue <= 76 + MARGE))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+bool DetecterJaune(struct RGB couleur)
+{
+    // Jaune  919553
+    if((couleur.red <= 91 + MARGE && couleur.red >= 91 - MARGE)
+       && (couleur.green >= 95 - MARGE && couleur.green <= 95 + MARGE)
+       && (couleur.blue >= 53 - MARGE && couleur.blue <= 53 + MARGE))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+bool DetecterVert(struct RGB couleur)
+{
+    // Vert à déterminer
+    return false;
 }
 
 /**
@@ -193,3 +256,8 @@ void AffichageCouleur(int couleur)
  rgbColor.b = ((hexValue) & 0xFF) / 255.0; // Extract the BB byte
  return (rgbColor);
 }*/
+
+Adafruit_TCS34725* getTCS()
+{
+    return &tcs;
+}

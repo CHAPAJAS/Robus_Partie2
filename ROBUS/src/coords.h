@@ -26,10 +26,13 @@ typedef struct
 void Coords_Init(int robus);    // 0 pour A, 1 pour B
 
 void  Coords_Move(point destination);
-void  Coords_Move(int32_t x, int32_t y);
+void  Coords_Move(int16_t x, int16_t y);
 void  Coords_Move(int destination);
+void  Coords_MoveOffset(int16_t x, int16_t y);
+
+void Coords_AjusterOffsetAngle(int16_t angleAjustement);
+
 point Coords_PositionActuelle();
-void  Coords_MoveOffset(int32_t x, int32_t y);
 
 float GetDistanceToPoint(point A, point B);
 float GetAngleToPoint(point A, point B);
