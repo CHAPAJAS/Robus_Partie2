@@ -11,10 +11,10 @@
 /*
  * @def     sizeof_array
  * @brief   Retourne le nombre de cases dans un tableau
- * 
- * L'opérateur `sizeof` retourne normalement le nombre d'octets contenus dans 
+ *
+ * L'opérateur `sizeof` retourne normalement le nombre d'octets contenus dans
  * un tableau.
- * On peut par contre diviser cette valeur par la taille d'un seul élément du 
+ * On peut par contre diviser cette valeur par la taille d'un seul élément du
  * tableau, ce qui peut être fait avec `sizeof(typeDeMonTableau)` ou simplement
  * en avec `sizeof(monTableau[0])`, qui est le premier élément du tableau.
  * Cette macro retourne donc le nombre d'octet du tableau divisé par la taille
@@ -23,7 +23,7 @@
  * @param   tableau: Le tableau dont on souhaite avoir le nombre de cases
  * @return  Nombre de cases dans le tableau
  *
- * @note    Fonctionne aussi avec des tableaux vides, car il cherche juste à 
+ * @note    Fonctionne aussi avec des tableaux vides, car il cherche juste à
  *          obtenir la taille d'un élément, et il interprète librement la valeur
  *          obtenue à l'index 0 comme un élément du bon type.
  *          Le calcul est probablement entièrement fait à la compilation.
@@ -44,6 +44,9 @@
  * https://en.cppreference.com/w/cpp/language/sizeof
  */
 #define sizeof_array(tableau) (int)(sizeof(tableau) / sizeof(tableau[0]))
+
+
+#define BIIIP() AX_BuzzerON(500, 2000)
 
 
 
