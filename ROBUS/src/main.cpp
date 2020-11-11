@@ -41,6 +41,8 @@ void RoutineB();
 /* Déclarations de fonctions ------------------------------------------------ */
 void RoutineA();
 void RoutineB();
+
+void routine_couleur();
 int  RobusVersionDetection();
 
 
@@ -90,6 +92,14 @@ void loop()
 
 void RoutineA()
 {
+    // Attend que le ROBUS B soit passé
+    delay(4000);
+
+    // Déplace vers la couleur
+    Coords_Move(CIBLE_PASTILLE);
+
+   
+
 }
 
 void RoutineB()
@@ -116,8 +126,8 @@ void RoutineB()
         distanceQuille = distanceSonar();
         print("dist: %d\n", distanceQuille);
     }
-    Deplacement_Stop();
     delay(500);
+    Deplacement_Stop();
 
     // virage a gauche
     Deplacement_Virage(-90);
@@ -128,13 +138,16 @@ void RoutineB()
         distanceQuille += 10;
     }
 
-    // Deplacement_Ligne(distanceQuille);
+    Deplacement_Ligne(distanceQuille);
     while(!ROBUS_IsBumper(FRONT))
     {
     }
     Deplacement_Stop();
 }
-
+void routine_couleur()
+{
+    
+}
 int RobusVersionDetection()
 {
     // La pin 11 est mise à HIGH sur les deux robots

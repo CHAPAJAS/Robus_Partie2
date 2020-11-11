@@ -243,8 +243,3 @@ void AffichageCouleur(int couleur)
  rgbColor.b = ((hexValue) & 0xFF) / 255.0; // Extract the BB byte
  return (rgbColor);
 }*/
-
-Adafruit_TCS34725* getTCS()
-{
-    return &tcs;
-}

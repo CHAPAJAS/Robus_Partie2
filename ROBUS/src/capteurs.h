@@ -31,8 +31,5 @@ int detecterCouleur(struct RGB couleur);
 void RoutineCouleur();
 void saisirRGB(Adafruit_TCS34725* tcs, struct RGB* rawCouleur);
 
-Adafruit_TCS34725* getTCS();
-
-
 
 struct RGB color_converter(int hexValue);

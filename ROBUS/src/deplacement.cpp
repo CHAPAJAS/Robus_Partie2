@@ -3,7 +3,6 @@
 #include "deplacement.h"
 #include "pidMaths.h"
 
-#include "../Plotter/Plotter.h"
 #include "../Timer/TimerOne.h"
 
 
@@ -67,9 +66,6 @@ float   multiplicateurD;
 
 /******************************************************************************/
 /* Variables ---------------------------------------------------------------- */
-
-Plotter debugPlotter;
-
 int32_t tempsRequis      = 0;
 int32_t consigneInitiale = 0;
 
@@ -158,9 +154,6 @@ void Deplacement_Init(int robus)
     print("\n%ld\n", (int32_t)(KD_VITESSE_CONSTANCE * 1000));
     Timer1.initialize((unsigned long)TIMER_DELAY_MS * 1000L);
     Timer1.attachInterrupt(&PID);
-
-    debugPlotter.Begin();
-    debugPlotter.AddTimeGraph("Différence d'encodeur", 50, "deltaEncodeur", deltaEncodeur);
 }
 
 bool Deplacement_Fini()
@@ -384,8 +377,6 @@ void Deplacement_Debug()
             print("Encodeur: %ld, %ld, %ld\n", valEncodeurG, valEncodeurD, deltaEncodeur);
             print("-----\n");
 
-            // debugPlotter.Plot();
-
             delay(50);
         }
         else
@@ -459,135 +450,3 @@ void Virage_Gauche(int angle)
     MOTOR_SetSpeed(RIGHT, 0);
 }
 
-
-float Accel(int32_t distanceTotale, int32_t distanceRestante)
-{
-    int32_t distance = distanceTotale - distanceRestante;
-
-    /*
-     * ^ P   _________________
-     * |    /                 \
-     * | __/                   \__
-     * |
-     * L-----------------------------> x
-     */
-
-    // Sous 10% de la distance ou au-dessus de 90%
-    if((distance < 0.1 * distanceTotale) || (distance > 0.9 * distanceTotale))
-    {
-        return COCHES_PAR_MS * 0.2;
-    }
-    // Sous 25% de la distance
-    if(distance < 0.25 * distanceTotale)
-    {
-        // Les multiplications par 128 s'annulent, c'est un comportement désiré.
-        int32_t multiplicateur = ((distance * 128) / distanceTotale) * 2.8;
-        return (COCHES_PAR_MS / 128) * multiplicateur;
-    }
-    // Au delà de 75% de la distance
-    if(distance > 0.75 * distanceTotale)
-    {
-        int32_t multiplicateur = (((distance * 128) / distanceTotale) * -2.8) + (2.8 * 128);
-        return (COCHES_PAR_MS / 128) * multiplicateur;
-    }
-
-    // Reste des valeurs
-    return COCHES_PAR_MS * 0.7;
-}
-
-
-/**
- * @brief Fonction d'affichage de debug pour les différentes variables importantes du PID
- */
-void Deplacement_Debug()
-{
-    static bool done = false;
-
-    if(done == false)
-    {
-        if(Deplacement_Fini() == false)
-        {
-            print("Commande: %ld \t %ld\n", (int32_t)commandeG, (int32_t)(commandeVitesse * 1000));
-            print("Vitesse: %ld, %ld\n", (int32_t)(vitesseG * 1000), (int32_t)(vitesseD * 1000));
-            print("mult: %ld, %ld\n",
-                  (int32_t)(multiplicateurG * 1000),
-                  (int32_t)(multiplicateurD * 1000));
-            print("Encodeur: %ld, %ld, %ld\n",
-                  valEncodeurG,
-                  valEncodeurD,
-                  (valEncodeurG - valEncodeurD));
-            print("-----\n");
-            delay(50);
-        }
-        else
-        {
-            print(
-              "\n"
-              "Déplacement terminé à %d, cmdG: %ld, cmdD: %ld\n",
-              millis(),
-              commandeG,
-              commandeD);
-            done = true;
-        }
-    }
-}
-void Deplacement_Virage(int angle)
-{
-#if VIRAGES == false
-    return;
-#endif
-
-    for(; abs(angle) > 100; angle = (angle >= 0) ? angle - 90 : angle + 90)
-    {
-        Deplacement_Virage((angle % 90 == 0) ? ((angle >= 0) ? 90 : -90) : angle % 90);
-        delay(DELAY_VIRAGE);
-    }
-
-    print("Virage de %d°\n", angle);
-    if(angle < 0)
-    {
-        angle = angle * -1;
-        Virage_Gauche(angle);
-    }
-    else
-    {
-        Virage_Droit(angle);
-    }
-}
-
-void Virage_Droit(int angle)
-{
-    ENCODER_ReadReset(0);
-    ENCODER_ReadReset(1);
-
-    long valeurEncodeurGauche = ENCODER_Read(0);
-
-    while(valeurEncodeurGauche <= constanteEncodeurG / (360 / (angle * angulo_d)))
-    {
-        MOTOR_SetSpeed(0, 0.3);
-        MOTOR_SetSpeed(1, -0.3);
-        valeurEncodeurGauche = ENCODER_Read(0);
-    }
-
-    MOTOR_SetSpeed(0, 0);
-    MOTOR_SetSpeed(1, 0);
-}
-
-
-void Virage_Gauche(int angle)
-{
-    ENCODER_ReadReset(0);
-    ENCODER_ReadReset(1);
-
-    long valeurEncodeurDroit = ENCODER_Read(1);
-
-    while(valeurEncodeurDroit <= constanteEncodeurD / (360 / (angle * angulo_g)))
-    {
-        MOTOR_SetSpeed(0, -0.3);
-        MOTOR_SetSpeed(1, 0.3);
-        valeurEncodeurDroit = ENCODER_Read(1);
-    }
-
-    MOTOR_SetSpeed(0, 0);
-    MOTOR_SetSpeed(1, 0);
-}
