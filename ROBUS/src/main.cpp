@@ -6,6 +6,7 @@
 #include "capteurs.h"
 #include "coords.h"
 #include "deplacement.h"
+#include "pidMaths.h"
 #include "suiveur.h"
 
 
@@ -21,6 +22,8 @@
 
 #define ROBUS_A 0
 #define ROBUS_B 1
+
+//#define OVERKILL
 
 
 /******************************************************************************/
@@ -79,14 +82,21 @@ void RoutineA()
 {
 }
 
+#ifdef OVERKILL
+float     integ = 0;
+float     deriv = 0;
+pidPacket couleurPID{1, 1, 1, &integ, &deriv};
+#endif
+
 void RoutineB()
 {
     int compteurSuiveur = 0;
+    int startTime       = millis();
 
     while(Deplacement_Fini() == false)
     {
         delay(10);
-        if (Suiveur_IsOnLine() == true)
+        if(Suiveur_IsOnLine() == true)
         {
             compteurSuiveur++;
         }
@@ -96,15 +106,20 @@ void RoutineB()
         }
     }
 
-    if (compteurSuiveur >= 5)
+#ifdef OVERKILL
+    float ajustementAngle = PID_Calculate(0.0, compteurSuiveur, couleurPID, millis() - startTime);
+#endif
+
+#ifndef OVERKILL
+    if(compteurSuiveur >= 5)
     {
         Coords_AjusterOffsetAngle(-1);
     }
-    else if (compteurSuiveur <= -5)
+    else if(compteurSuiveur <= -5)
     {
         Coords_AjusterOffsetAngle(1);
     }
-    
+#endif
 }
 
 int RobusVersionDetection()

@@ -1,20 +1,9 @@
 /******************************************************************************/
 /* Inclusions --------------------------------------------------------------- */
 #include "deplacement.h"
+#include "pidMaths.h"
 
 #include "../Timer/TimerOne.h"
-
-
-/******************************************************************************/
-/* Types -------------------------------------------------------------------- */
-struct pidPacket
-{
-    float  KP;
-    float  KI;
-    float  KD;
-    float* integ;
-    float* deriv;
-};
 
 
 /******************************************************************************/
@@ -113,14 +102,10 @@ const pidPacket PID_POSITION_D      = {KP_POSITION, KI_POSITION, 0, &integralePo
 /* Déclarations de fonctions ------------------------------------------------ */
 int32_t CMtoCoche(int32_t valeurCM);
 
-void  PID();
-float cheeky_pid(float objectif, float valeur, pidPacket pid);
+void PID();
 
 void Deplacement_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD);
 void Vitesse_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD);
-
-float Deplacement_PID_Calculate(uint32_t valeur, float cmd, pidPacket pid);
-float Vitesse_PID_Calculate(float vitesseActuelle, float cmd, pidPacket pid);
 
 bool Deplacement_Check(int32_t valeurVoulue, int32_t valeurEncodeur);
 
@@ -134,14 +119,14 @@ void Virage_Droit(int angle);
 /* Définitions de fonctions ------------------------------------------------- */
 void Deplacement_Init(int robus)
 {
-    if(robus == 0 || robus == 'A')
+    if((robus == 0) || (robus == 'A'))
     {
         constanteEncodeurG = ENCODEUR_GAUCHE_360_A;
         constanteEncodeurD = ENCODEUR_DROIT_360_A;
         angulo_d           = ANGULOD_A;
         angulo_g           = ANGULOG_A;
     }
-    else if(robus == 1 | robus == 'B')
+    else if((robus == 1) || (robus == 'B'))
     {
         constanteEncodeurG = ENCODEUR_GAUCHE_360_A;
         constanteEncodeurD = ENCODEUR_DROIT_360_A;
@@ -270,8 +255,8 @@ void Deplacement_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD)
         return;
     }
 
-    commandeG = Deplacement_PID_Calculate(valeurEncodeurG, commandeG, PID_POSITION_G);
-    commandeD = Deplacement_PID_Calculate(valeurEncodeurD, commandeD, PID_POSITION_D);
+    commandeG = PID_Calculate(valeurEncodeurG, commandeG, PID_POSITION_G, DELTA_T);
+    commandeD = PID_Calculate(valeurEncodeurD, commandeD, PID_POSITION_D, DELTA_T);
 }
 
 
@@ -285,44 +270,14 @@ void Vitesse_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD)
     commandeVitesse = COCHES_PAR_MS;    // Accel(consigneInitiale, commandeG);
 
     // Calcul du multiplicateur de vitesse
-    multiplicateurG = cheeky_pid(commandeVitesse, vitesseG, PID_SPEED_OBJECTIF);
-    multiplicateurD = cheeky_pid(vitesseG, vitesseD, PID_SPEED_CONSTANCE);
+    multiplicateurG = PID_Calculate(commandeVitesse, vitesseG, PID_SPEED_OBJECTIF, DELTA_T);
+    multiplicateurD = PID_Calculate(vitesseG, vitesseD, PID_SPEED_CONSTANCE, DELTA_T);
 
     // Ajustement des vitesses des deux roues
     MOTOR_SetSpeed(LEFT, PUISSANCE_DEFAULT + multiplicateurG);
     MOTOR_SetSpeed(RIGHT, PUISSANCE_DEFAULT + multiplicateurD);
 }
 
-float Deplacement_PID_Calculate(uint32_t valeur, float cmd, pidPacket PID)
-{
-    // Calcul de l'erreur par rapport à la valeur désirée
-    // Une valeur de `erreur` négative indique qu'on a trop déplacé
-    // Une valeur de `erreur` positive indique qu'on a pas assez déplacé
-    float erreur = (cmd - valeur) * (1 + PID.KP);
-
-    // Calcul de l'intégrale
-    // On multiplie l'erreur par dt (en s), et on l'ajoute au total
-    //*integ += erreur * (TIMER_DELAY_MS / 1000) * KI;
-
-    // Calcul du multiplicateur de vitesse
-    return *PID.integ + erreur;
-}
-
-float cheeky_pid(float objectif, float valeur, pidPacket pid)
-{
-    // Calcul de l'erreur par rapport à la valeur désirée
-    float erreur = objectif - valeur;
-
-    // Calcul et mise à jour de l'intégrale
-    float integ = *pid.integ += (erreur * DELTA_T);
-
-    // Calcul de la dérivée et mise à jour de la dernière erreur
-    float deriv = (erreur - *pid.deriv) / DELTA_T;
-    *pid.deriv  = erreur;
-
-    // Calcul du multiplicateur de vitesse
-    return (pid.KP * erreur) + (pid.KI * integ) + (pid.KD * deriv);
-}
 
 bool Deplacement_Check(int32_t valeurVoulue, int32_t valeurEncodeur)
 {
@@ -414,6 +369,8 @@ void Deplacement_Debug()
         }
     }
 }
+
+
 void Deplacement_Virage(int angle)
 {
     for(; abs(angle) > 100; angle = (angle >= 0) ? angle - 90 : angle + 90)
@@ -436,37 +393,37 @@ void Deplacement_Virage(int angle)
 
 void Virage_Droit(int angle)
 {
-    ENCODER_ReadReset(0);
-    ENCODER_ReadReset(1);
+    ENCODER_ReadReset(LEFT);
+    ENCODER_ReadReset(RIGHT);
 
-    long valeurEncodeurGauche = ENCODER_Read(0);
+    long valeurEncodeurGauche = ENCODER_Read(LEFT);
 
     while(valeurEncodeurGauche <= constanteEncodeurG / (360 / (angle * angulo_d)))
     {
-        MOTOR_SetSpeed(0, 0.3);
-        MOTOR_SetSpeed(1, -0.3);
-        valeurEncodeurGauche = ENCODER_Read(0);
+        MOTOR_SetSpeed(LEFT, 0.3);
+        MOTOR_SetSpeed(RIGHT, -0.3);
+        valeurEncodeurGauche = ENCODER_Read(LEFT);
     }
 
-    MOTOR_SetSpeed(0, 0);
-    MOTOR_SetSpeed(1, 0);
+    MOTOR_SetSpeed(LEFT, 0);
+    MOTOR_SetSpeed(RIGHT, 0);
 }
 
 
 void Virage_Gauche(int angle)
 {
-    ENCODER_ReadReset(0);
-    ENCODER_ReadReset(1);
+    ENCODER_ReadReset(LEFT);
+    ENCODER_ReadReset(RIGHT);
 
-    long valeurEncodeurDroit = ENCODER_Read(1);
+    long valeurEncodeurDroit = ENCODER_Read(RIGHT);
 
     while(valeurEncodeurDroit <= constanteEncodeurD / (360 / (angle * angulo_g)))
     {
-        MOTOR_SetSpeed(0, -0.3);
-        MOTOR_SetSpeed(1, 0.3);
+        MOTOR_SetSpeed(LEFT, -0.3);
+        MOTOR_SetSpeed(RIGHT, 0.3);
         valeurEncodeurDroit = ENCODER_Read(1);
     }
 
-    MOTOR_SetSpeed(0, 0);
-    MOTOR_SetSpeed(1, 0);
+    MOTOR_SetSpeed(LEFT, 0);
+    MOTOR_SetSpeed(RIGHT, 0);
 }
