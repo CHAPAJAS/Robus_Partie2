@@ -36,6 +36,9 @@ void RoutineB();
 #define ROBUS_A 0
 #define ROBUS_B 1
 
+#define ANGLE_FILET_UP   103
+#define ANGLE_FILET_DOWN 0
+
 
 /******************************************************************************/
 /* Déclarations de fonctions ------------------------------------------------ */
@@ -74,7 +77,7 @@ void setup()
     // Appelle la fonction principale correspondante
     if(Robus == ROBUS_A)
     {
-        RoutineA();
+        // RoutineA();
     }
     else if(Robus == ROBUS_B)
     {
@@ -119,6 +122,34 @@ void RoutineA()
 
     // Déplace vers la couleur
     Coords_Move(CIBLE_PASTILLE);
+
+    // Lecture de la couleur
+    int couleur = RoutineCouleur();
+
+    // Déplacement vers la balle
+    Coords_Move(CIBLE_BALLE);
+
+    // Ramasser la balle
+    SERVO_SetAngle(LEFT, ANGLE_FILET_DOWN);
+
+    // Déplacement vers la cible de couleur
+    switch(couleur)
+    {
+        case ROUGE:
+            Coords_Move(CIBLE_ROUGE);
+            break;
+        case JAUNE:
+            Coords_Move(CIBLE_JAUNE);
+            break;
+        case BLEU:
+            Coords_Move(CIBLE_BLEUE);
+            break;
+
+        default:
+            // On se prend une chance, on a 1/3 de chance d'avoir raison!
+            Coords_Move(CIBLE_JAUNE);
+            break;
+    }
 }
 
 void RoutineB()

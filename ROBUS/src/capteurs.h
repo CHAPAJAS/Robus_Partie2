@@ -1,16 +1,17 @@
 #pragma once
 /******************************************************************************/
 /* Inclusions -------------------------------------------------------------- */
-#include "LibCHAPAJAS.h"
 #include "Adafruit_TCS34725.h"
+#include "LibCHAPAJAS.h"
 
 
 /******************************************************************************/
 /* Defines ------------------------------------------------------------------ */
-#define ROUGE 0
-#define JAUNE 1
-#define BLEU  2
-#define VERT  3
+#define ROUGE            0
+#define JAUNE            1
+#define BLEU             2
+#define VERT             3
+#define COULEUR_INCONNUE -1
 
 
 /******************************************************************************/
@@ -27,8 +28,8 @@ struct RGB
 /* Déclarations de fonctions ------------------------------------------------ */
 void capteurCouleur_Init();
 void detecterCouleur(struct RGB couleur, char couleurDetecte[]);
-int detecterCouleur(struct RGB couleur);
-void RoutineCouleur();
+int  detecterCouleur(struct RGB couleur);
+int  RoutineCouleur();
 void saisirRGB(Adafruit_TCS34725* tcs, struct RGB* rawCouleur);
 void AffichageCouleur(int couleur);
 

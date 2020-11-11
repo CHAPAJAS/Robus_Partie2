@@ -16,7 +16,7 @@
 #define OFFSET_A 0
 #define OFFSET_B 0
 
-#define DELAY_DEPLACEMENT   250
+#define DELAY_DEPLACEMENT 250
 
 
 /******************************************************************************/
@@ -27,7 +27,7 @@ const point Depart_B{MOITIE_CARRE, 25};    // Départ du robot B
 const point Pastille{100, 50};                     // Pastille de couleur, 1m du début
 const point Balle{200 + 50, HAUTEUR_PISTE / 2};    // Balle à 2.5m du début
 
-const point Jaune{300 + 1, MOITIE_CARRE};    // A ACTUALISER
+const point Jaune{300 + 20, MOITIE_CARRE};    // Pas accoté sur la ligne de 3m
 const point Bleu{400 + MOITIE_CARRE, HAUTEUR_PISTE - MOITIE_CARRE};
 const point Rose{500 - MOITIE_CARRE, MOITIE_CARRE};    // Accoté sur le mur du fond,
 
@@ -69,12 +69,13 @@ void Coords_Move(point destination)
         return;
     }
 
-    //float distance = GetDistanceToPoint(positionActuelle, destination);
+    // float distance = GetDistanceToPoint(positionActuelle, destination);
     // Si le y de la destination est plus élevé que le y actuel, il faut avoir un angle négatif
     // (tourner à gauche).
-    float angle = (destination.y == positionActuelle.y)
-                    ? 0 : (destination.y > positionActuelle.y)
-                    ? -90 : 90; // Choisi un angle de 90° ou -90°
+    float angle =
+      (destination.y == positionActuelle.y)
+        ? 0
+        : (destination.y > positionActuelle.y) ? -90 : 90;    // Choisi un angle de 90° ou -90°
     // GetAngleToPoint(positionActuelle, destination);
     angle += angleOffset;
 
