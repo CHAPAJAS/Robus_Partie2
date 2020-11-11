@@ -68,6 +68,7 @@ void setup()
 
 void loop()
 {
+    
 }
 
 
@@ -77,6 +78,13 @@ void RoutineA()
 
 void RoutineB()
 {
+    Deplacement_Ligne(100);
+    while(ROBUS_IsBumper(FRONT) == false)
+    {
+        Deplacement_Debug();
+    }
+    Deplacement_Stop();
+    BIIIP();
 }
 
 int RobusVersionDetection()

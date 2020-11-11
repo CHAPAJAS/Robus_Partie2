@@ -53,19 +53,6 @@ void capteurCouleur_Init()
     digitalWrite(PIN_RED, HIGH);    // La LED est éteinte à l'état HIGH
     digitalWrite(PIN_BLUE, HIGH);
     digitalWrite(PIN_YELLOW, HIGH);
-
-    // Sert à détercter un capteur.
-    if(tcs.begin())
-    {
-        print("Found sensor\n");
-    }
-    else
-    {
-        Serial.println("No TCS34725 found ... check your connections");
-        BIIIP();
-    }
-
-    // Now we're ready to get readings!
 }
 
 void RoutineCouleur()

@@ -3,6 +3,7 @@
 #include "deplacement.h"
 #include "pidMaths.h"
 
+#include "../Plotter/Plotter.h"
 #include "../Timer/TimerOne.h"
 
 
@@ -57,6 +58,7 @@
 /* Variables globales pour debug -------------------------------------------- */
 int32_t valEncodeurG;
 int32_t valEncodeurD;
+int32_t deltaEncodeur;
 float   vitesseG;
 float   vitesseD;
 float   multiplicateurG;
@@ -65,6 +67,9 @@ float   multiplicateurD;
 
 /******************************************************************************/
 /* Variables ---------------------------------------------------------------- */
+
+Plotter debugPlotter;
+
 int32_t tempsRequis      = 0;
 int32_t consigneInitiale = 0;
 
@@ -113,6 +118,7 @@ void Vitesse_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD);
 
 bool Deplacement_Check(int32_t valeurVoulue, int32_t valeurEncodeur);
 
+float Deplacement_PID_Calculate(uint32_t valeur, float cmd, pidPacket PID);
 float Accel(int32_t distanceTotale, int32_t distanceRestante);
 
 void Virage_Gauche(int angle);
@@ -152,6 +158,9 @@ void Deplacement_Init(int robus)
     print("\n%ld\n", (int32_t)(KD_VITESSE_CONSTANCE * 1000));
     Timer1.initialize((unsigned long)TIMER_DELAY_MS * 1000L);
     Timer1.attachInterrupt(&PID);
+
+    debugPlotter.Begin();
+    debugPlotter.AddTimeGraph("Différence d'encodeur", 50, "deltaEncodeur", deltaEncodeur);
 }
 
 bool Deplacement_Fini()
@@ -261,8 +270,8 @@ void Deplacement_PID(int32_t valeurEncodeurG, int32_t valeurEncodeurD)
         return;
     }
 
-    commandeG = PID_Calculate(valeurEncodeurG, commandeG, PID_POSITION_G, DELTA_T);
-    commandeD = PID_Calculate(valeurEncodeurD, commandeD, PID_POSITION_D, DELTA_T);
+    commandeG = Deplacement_PID_Calculate(valeurEncodeurG, commandeG, PID_POSITION_G);
+    commandeD = Deplacement_PID_Calculate(valeurEncodeurG, commandeG, PID_POSITION_G);
 }
 
 
@@ -303,6 +312,20 @@ int32_t CMtoCoche(int32_t valeurCM)
     return valeurCoche;
 }
 
+float Deplacement_PID_Calculate(uint32_t valeur, float cmd, pidPacket PID)
+{
+    // Calcul de l'erreur par rapport à la valeur désirée
+    // Une valeur de `erreur` négative indique qu'on a trop déplacé
+    // Une valeur de `erreur` positive indique qu'on a pas assez déplacé
+    float erreur = (cmd - valeur) * (1 + PID.KP);
+
+    // Calcul de l'intégrale
+    // On multiplie l'erreur par dt (en s), et on l'ajoute au total
+    //*integ += erreur * (TIMER_DELAY_MS / 1000) * KI;
+
+    // Calcul du multiplicateur de vitesse
+    return *PID.integ + erreur;
+}
 
 float Accel(int32_t distanceTotale, int32_t distanceRestante)
 {
@@ -351,16 +374,18 @@ void Deplacement_Debug()
     {
         if(Deplacement_Fini() == false)
         {
+            deltaEncodeur = valEncodeurG - valEncodeurD;
+
             print("Commande: %ld \t %ld\n", (int32_t)commandeG, (int32_t)(commandeVitesse * 1000));
             print("Vitesse: %ld, %ld\n", (int32_t)(vitesseG * 1000), (int32_t)(vitesseD * 1000));
             print("mult: %ld, %ld\n",
                   (int32_t)(multiplicateurG * 1000),
                   (int32_t)(multiplicateurD * 1000));
-            print("Encodeur: %ld, %ld, %ld\n",
-                  valEncodeurG,
-                  valEncodeurD,
-                  (valEncodeurG - valEncodeurD));
+            print("Encodeur: %ld, %ld, %ld\n", valEncodeurG, valEncodeurD, deltaEncodeur);
             print("-----\n");
+
+            // debugPlotter.Plot();
+
             delay(50);
         }
         else
