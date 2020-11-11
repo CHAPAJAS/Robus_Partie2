@@ -1,13 +1,9 @@
-#include<Adafruit_TCS34725.h>
-#include<Wire.h>
+#include "LibCHAPAJAS.h"
 
-#define ROUGE "Rouge"
-#define JAUNE "Jaune"
-#define BLUE "Blue"
 
 /******************************************************************************/
 /* Déclarations de fonctions ------------------------------------------------ */
-void capteurCouleur_Init(Adafruit_TCS34725 tcs);
+void capteurCouleur_Init();
 void saisirRGB(Adafruit_TCS34725 tcs, struct RGB *rawCouleur);
 void detecterCouleur(struct RGB couleur, char couleurDetecte[]);
 

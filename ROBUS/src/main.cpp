@@ -1,12 +1,10 @@
 /******************************************************************************/
 /* Inclusions --------------------------------------------------------------- */
-#include "Adafruit_TCS34725.h"
+#include "../lib/Adafruit_TCS34725/Adafruit_TCS34725.h"
 #include "LibCHAPAJAS.h"
 #include "capteurs.h"
 #include "coords.h"
 #include "deplacement.h"
-#include <Wire.h>
-#include <string.h>
 
 
 
@@ -14,9 +12,7 @@
 /* Defines ------------------------------------------------------------------ */
 #define PIN_ROBUS        13
 #define PIN_HIGH_VERSION 11
-#define PIN_RED          8
-#define PIN_BLUE         9
-#define PIN_YELLOW       10
+
 
 #define COULEUR_RED    0
 #define COULEUR_BLUE   1
@@ -32,14 +28,6 @@ void RoutineA();
 void RoutineB();
 int  RobusVersionDetection();
 
-void AffichageCouleur(int couleur);
-int  RoutineCouleur();
-
-
-/******************************************************************************/
-/* Variables ---------------------------------------------------------------- */
-Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_154MS, TCS34725_GAIN_1X);
-
 
 /******************************************************************************/
 /* main --------------------------------------------------------------------- */
@@ -51,20 +39,12 @@ void setup()
     int Robus = RobusVersionDetection();
 
     // Initialisations
-    pinMode(PIN_RED, OUTPUT);
-    pinMode(PIN_BLUE, OUTPUT);
-    pinMode(PIN_YELLOW, OUTPUT);
-    digitalWrite(PIN_RED, HIGH);    // La LED est éteinte à l'état HIGH
-    digitalWrite(PIN_BLUE, HIGH);
-    digitalWrite(PIN_YELLOW, HIGH);
-
     BoardInit();
-    /*Coords_Init(Robus);
-    Deplacement_Init(Robus);*/
+    Coords_Init(Robus);
+    Deplacement_Init(Robus);
+    capteurCouleur_Init();
 
-    capteurCouleur_Init(tcs);
-
-    /*print("\n Début de programme %c : %d --------------------------------- \n",
+    print("\n Début de programme %c : %d --------------------------------- \n",
           (Robus == ROBUS_A) ? 'A' : (Robus == ROBUS_B) ? 'B' : 'x',
           millis());
 
@@ -81,18 +61,11 @@ void setup()
     {
         // Erreur! Le robus n'est pas configuré à une version correcte.
         BIIIP();
-    }*/
+    }
 }
 
 void loop()
 {
-    //Deplacement_Debug();
-    int cible = 0;
-    cible  = RoutineCouleur();
-
-    
-    AffichageCouleur(cible);
-
 }
 
 
@@ -115,53 +88,4 @@ int RobusVersionDetection()
     delay(10);
 
     return digitalRead(PIN_ROBUS);
-}
-
-/**
- * @brief   Allume la led correspondante à la couleur détectée
- */
-void AffichageCouleur(int couleur)
-{
-    switch(couleur)
-    {
-        case Cible_Rouge:
-            digitalWrite(PIN_RED, LOW);
-            return;
-
-        case Cible_Bleue:
-            digitalWrite(PIN_BLUE, LOW);
-            return;
-
-        case Cible_Jaune:
-            digitalWrite(PIN_YELLOW, LOW);
-            return;
-
-        default:
-            //BIIIP();
-
-            break;
-    }
-}
-
-int RoutineCouleur()
-{
-    struct RGB couleur;
-    char       nomCouleur[100] = "";
-    saisirRGB(tcs, &couleur);
-    detecterCouleur(couleur, nomCouleur);
-    Serial.println(nomCouleur);
-
-    if(strcmp(nomCouleur, ROUGE) == 0)
-    {
-        return Cible_Rouge;
-    }
-    else if(strcmp(nomCouleur, JAUNE) == 0)
-    {
-        return Cible_Jaune;
-    }
-    else if(strcmp(nomCouleur, BLUE) == 0)
-    {
-        return Cible_Bleue;
-    }
-    return 0;
 }

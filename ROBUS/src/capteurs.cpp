@@ -1,15 +1,38 @@
+/*****************************************************************************/
+/* Inclusions -------------------------------------------------------------- */
 #include "capteurs.h"
 #include "Adafruit_TCS34725.h"
 #include <Wire.h>
 #include <string.h>
 
+
+/*****************************************************************************/
+/* Définitions ------------------------------------------------------------- */
 #define MARGE 3
 
+#define PIN_RED    8
+#define PIN_BLUE   9
+#define PIN_YELLOW 10
 
-/*-----Initialiser les fonctions-------------*/
+#define ROUGE 0
+#define JAUNE 1
+#define BLEU  2
+
+
+
+/*****************************************************************************/
+/* Variables --------------------------------------------------------------- */
+Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_154MS, TCS34725_GAIN_1X);
+
+/*****************************************************************************/
+/* Déclarations de fonctions ----------------------------------------------- */
+void AffichageCouleur(int couleur);
+
 // void imprimerRGB();
 
 
+/*****************************************************************************/
+/* Définitions de fonctions ------------------------------------------------ */
 /* Example code for the Adafruit TCS34725 breakout library */
 
 /* Connect SCL    to analog 5
@@ -23,38 +46,65 @@
 /* Initialise with specific int time and gain values */
 // Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_700MS, TCS34725_GAIN_1X);
 
-void capteurCouleur_Init(Adafruit_TCS34725 tcs)
+void capteurCouleur_Init()
 {
-
-    //Serial.begin(9600);
+    pinMode(PIN_RED, OUTPUT);
+    pinMode(PIN_BLUE, OUTPUT);
+    pinMode(PIN_YELLOW, OUTPUT);
+    digitalWrite(PIN_RED, HIGH);    // La LED est éteinte à l'état HIGH
+    digitalWrite(PIN_BLUE, HIGH);
+    digitalWrite(PIN_YELLOW, HIGH);
 
     // Sert à détercter un capteur.
     if(tcs.begin())
     {
-        Serial.println("Found sensor");
+        print("Found sensor\n");
     }
     else
     {
         Serial.println("No TCS34725 found ... check your connections");
-        while(1)
-            ;
+        while(true)
+        {
+        }
     }
 
     // Now we're ready to get readings!
 }
 
+void RoutineCouleur()
+{
+    struct RGB couleur;
+    char       nomCouleur[100] = "";
+    saisirRGB(tcs, &couleur);
+    detecterCouleur(couleur, nomCouleur);
+    Serial.println(nomCouleur);
+
+    if(strcmp(nomCouleur, "Rouge") == 0)
+    {
+        AffichageCouleur(ROUGE);
+    }
+    else if(strcmp(nomCouleur, "Jaune") == 0)
+    {
+        AffichageCouleur(JAUNE);
+    }
+    else if(strcmp(nomCouleur, "Bleu") == 0)
+    {
+        AffichageCouleur(BLEU);
+    }
+}
+
 void saisirRGB(Adafruit_TCS34725 tcs, struct RGB* rawCouleur)
-{        //
+{    //
 
     struct RGB couleurTemp;
-    uint16_t   r, g, b, c;        // colorTemp, lux;
+    uint16_t   r, g, b, c;    // colorTemp, lux;
 
     tcs.getRawData(&r, &g, &b, &c);
     // colorTemp = tcs.calculateColorTemperature(r, g, b);
     // lux = tcs.calculateLux(r, g, b);
 
     // Conversion de raw Data en code HEX et affichage en DEC
-    uint32_t sum = c;
+    uint32_t sum    = c;
     couleurTemp.red = r;
     couleurTemp.red /= sum;
 
@@ -82,28 +132,59 @@ void saisirRGB(Adafruit_TCS34725 tcs, struct RGB* rawCouleur)
 void detecterCouleur(struct RGB couleur, char* couleurDetecte)
 {
 
-    if((couleur.red <= 92 + MARGE && couleur.red >= 92 - MARGE) && (couleur.green >= 80 - MARGE && couleur.green <= 80 + MARGE)
+    if((couleur.red <= 92 + MARGE && couleur.red >= 92 - MARGE)
+       && (couleur.green >= 80 - MARGE && couleur.green <= 80 + MARGE)
        && (couleur.blue >= 69 - MARGE && couleur.blue <= 69 + MARGE))
     {
-      // Rouge  928069
-        strcpy(couleurDetecte, ROUGE);
-    }else if((couleur.red <= 69 + MARGE && couleur.red >= 69 - MARGE) && (couleur.green >= 95 - MARGE 
-       && couleur.green <= 95 + MARGE) && (couleur.blue >= 76 - MARGE && couleur.blue <= 76 + MARGE))
+        // Rouge  928069
+        strcpy(couleurDetecte, "Rouge");
+    }
+    else if((couleur.red <= 69 + MARGE && couleur.red >= 69 - MARGE)
+            && (couleur.green >= 95 - MARGE && couleur.green <= 95 + MARGE)
+            && (couleur.blue >= 76 - MARGE && couleur.blue <= 76 + MARGE))
     {
-      // Blue  699576
-        strcpy(couleurDetecte, BLUE);
-    }else if((couleur.red <= 91 + MARGE && couleur.red >= 91 - MARGE) && (couleur.green >= 95 - MARGE && couleur.green <= 95 + MARGE)
-         && (couleur.blue >= 53 - MARGE && couleur.blue <= 53 + MARGE))
+        // Blue  699576
+        strcpy(couleurDetecte, "Bleu");
+    }
+    else if((couleur.red <= 91 + MARGE && couleur.red >= 91 - MARGE)
+            && (couleur.green >= 95 - MARGE && couleur.green <= 95 + MARGE)
+            && (couleur.blue >= 53 - MARGE && couleur.blue <= 53 + MARGE))
     {
-      // Jaune  919553
-        strcpy(couleurDetecte, JAUNE);
-    }else
+        // Jaune  919553
+        strcpy(couleurDetecte, "Jaune");
+    }
+    else
     {
         strcpy(couleurDetecte, "Not found!");
     }
 
-    //Serial.println(couleurDetecte);
+    // Serial.println(couleurDetecte);
+}
 
+/**
+ * @brief   Allume la led correspondante à la couleur détectée
+ */
+void AffichageCouleur(int couleur)
+{
+    switch(couleur)
+    {
+        case ROUGE:
+            digitalWrite(PIN_RED, LOW);
+            return;
+
+        case BLEU:
+            digitalWrite(PIN_BLUE, LOW);
+            return;
+
+        case JAUNE:
+            digitalWrite(PIN_YELLOW, LOW);
+            return;
+
+        default:
+            // BIIIP();
+
+            break;
+    }
 }
 
 /*struct RGB color_converter(int hexValue)
