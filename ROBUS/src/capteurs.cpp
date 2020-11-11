@@ -27,6 +27,7 @@ Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_154MS, TCS347
 /*****************************************************************************/
 /* Déclarations de fonctions ----------------------------------------------- */
 void AffichageCouleur(int couleur);
+void saisirRGB(Adafruit_TCS34725 tcs, struct RGB* rawCouleur);
 
 // void imprimerRGB();
 
@@ -63,9 +64,6 @@ void capteurCouleur_Init()
     else
     {
         Serial.println("No TCS34725 found ... check your connections");
-        while(true)
-        {
-        }
     }
 
     // Now we're ready to get readings!

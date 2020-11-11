@@ -51,6 +51,7 @@ void setup()
     // attendre le coup de sifflet
     analogWait();
 
+    print("Reçu bip");
     BIIIP();
 
 
