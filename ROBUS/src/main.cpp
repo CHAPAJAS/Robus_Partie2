@@ -57,7 +57,7 @@ void setup()
     if(Robus == ROBUS_A)
     {
         // Coords_Move(CIBLE_PASTILLE);
-        Deplacement_Ligne(100);
+        Deplacement_Ligne(150);
         // Coords_MoveOffset(150, 0);
         // RoutineA();
     }

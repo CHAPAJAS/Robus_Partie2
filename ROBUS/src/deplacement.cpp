@@ -29,7 +29,7 @@
 #define DELAY_VIRAGE   1000
 
 // Constantes de PID
-#define KP_POSITION 0.005f
+#define KP_POSITION 0.00005f
 #define KI_POSITION 0.00005f
 
 #define KP_VITESSE_OBJECTIF 0.001f

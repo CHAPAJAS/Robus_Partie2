@@ -29,7 +29,7 @@ void Servo_Handle();
 /* Définitions de fonctions ------------------------------------------------- */
 void Servo_Init()
 {
-    if(ROBUS_IsBumper(REAR) != true)
+    if(AX_GetVoltage() < 5)
     {
         pinMode(PIN_SERVO, OUTPUT);
         enabled = true;
