@@ -1,7 +1,11 @@
 #include "TimerOne.h"
 #include "timer.h"
 
+#include "deplacement.h"
+
+
 #define COMPTES_POUR_PID    TIMER_DELAY_MS / ((double)FREQ_INTERRUPT_US / 1000.0)
+#define COMPTES_POUR_1MIN   ((1000L * 60L) / ((double)FREQ_INTERRUPT_US / 1000.0))
 
 uint32_t compteur;
 
@@ -28,4 +32,11 @@ void timer_handler()
 
         Timer1.resume();
     }
+
+    // if(compteur >= COMPTES_POUR_1MIN)
+    // {
+    //     Deplacement_Stop();
+    //     Timer1.stop();
+    //     while(1);
+    // }
 }
