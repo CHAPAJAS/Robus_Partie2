@@ -15,7 +15,7 @@
 #define ROBUS_B   1
 
 #define DELAY_LECTURE 20
-#define DISTANCE_B    200
+#define DISTANCE_B    20
 
 
 /******************************************************************************/
@@ -72,7 +72,7 @@ void setup()
           millis());
 
     // attendre le coup de sifflet
-    // analogWait();
+    analogWait();
 
     // Appelle la fonction principale correspondante
     if(Robus == ROBUS_A)
@@ -159,32 +159,40 @@ void RoutineB()
 
     delay(2000);
 
-    int cptDistance    = DISTANCE_B;
+    int cptDistance = DISTANCE_B + 30;
     int distanceQuille;
     do
     {
-        if(ROBUS_IsBumper(FRONT) == true)
+        /*if(ROBUS_IsBumper(FRONT) == true)
         {
             print("bumper");
             break;
-        }
+        }*/
 
-        if(Deplacement_Fini() && cptDistance < 400)
+        if(Deplacement_Fini() && cptDistance < 480)
         {
             Deplacement_Ligne(DISTANCE_B);
             cptDistance += DISTANCE_B;
         }
-        else if(Deplacement_Fini() && cptDistance > 300)
+        else if(Deplacement_Fini() && cptDistance >= 480)
         {
-            Deplacement_Ligne(75);
+            Deplacement_Stop();
+            break;
         }
-        distanceQuille = distanceSonar();
+        if(cptDistance < 215 || cptDistance > 285)
+        {
+            distanceQuille = distanceSonar();
+        }
+
+
+
         print("dist: %d\n", distanceQuille);
 
         delay(DELAY_LECTURE);
-    } while(distanceQuille > 45);
-    
-    delay(500);
+    } while(distanceQuille > 38);
+
+    //BIIIP();
+    delay((cptDistance > 400) ? 500 : 2000);
     Deplacement_Stop();
 
     delay(1000);
@@ -193,7 +201,36 @@ void RoutineB()
     Deplacement_Virage(-90);
     delay(500);
 
-    Deplacement_Ligne(75);
+    if(cptDistance < 200)
+        Deplacement_Ligne(67);
+    else if(cptDistance < 300)
+        Deplacement_Ligne(65);
+    else if(cptDistance < 400)
+        Deplacement_Ligne(61);
+    else
+        Deplacement_Ligne(57);
+    Deplacement_Wait();
+    /*Deplacement_Virage(90);
+    delay(1500);
+    Deplacement_Ligne(50);
+    cptDistance +=50;
+    while(cptDistance<475)
+    {
+        if(Deplacement_Fini())
+        {
+            Deplacement_Ligne(DISTANCE_B);
+            cptDistance +=DISTANCE_B;
+        }
+    }
+    Deplacement_Stop();*/
+
+    if(cptDistance < 450)
+    {
+        Deplacement_Virage(90);
+        Deplacement_Wait();
+        Deplacement_Ligne(20);
+        Deplacement_Wait();
+    }
 }
 
 int RobusVersionDetection()
