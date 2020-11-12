@@ -18,9 +18,6 @@
 #define DELAY_LECTURE 20
 #define DISTANCE_B    200
 
-#define ANGLE_FILET_UP   120
-#define ANGLE_FILET_DOWN 240
-
 
 /******************************************************************************/
 /* Déclarations de fonctions ------------------------------------------------ */
@@ -46,7 +43,7 @@ void setup()
     Deplacement_Init(Robus);
     capteurCouleur_Init();
     analogsetup();    // sifflet
-    // Servo_Init();
+    Servo_Init();
 
     print("\n Début de programme %c : %d --------------------------------- \n",
           (Robus == ROBUS_A) ? 'A' : (Robus == ROBUS_B) ? 'B' : 'x',
@@ -75,7 +72,6 @@ void setup()
 
 void loop()
 {
-    Deplacement_Debug();
 }
 
 

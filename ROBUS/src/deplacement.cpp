@@ -25,7 +25,7 @@
 #define SPD_B 1.05
 
 // Temps
-#define TIMER_DELAY_MS 75//50    // Delai entre les mesures et ajustements
+#define TIMER_DELAY_MS 50UL    // Delai entre les mesures et ajustements
 #define DELTA_T        ((float)TIMER_DELAY_MS / 1000.0)
 #define DELAY_VIRAGE   1000
 
@@ -152,8 +152,7 @@ void Deplacement_Init(int robus)
     print("\n%ld", (int32_t)(KP_VITESSE_CONSTANCE * 1000));
     print("\n%ld", (int32_t)(KI_VITESSE_CONSTANCE * 1000));
     print("\n%ld\n", (int32_t)(KD_VITESSE_CONSTANCE * 1000));
-
-    Timer1.initialize(TIMER_DELAY_MS * 1000);
+    Timer1.initialize(TIMER_DELAY_MS * 1000UL);
     Timer1.attachInterrupt(&PID);
 }
 
@@ -187,21 +186,6 @@ void Deplacement_Stop()
     commandeD          = 0;
     fini               = true;
 }
-
-void Deplacement_Continue()
-{
-    integraleG         = 0;
-    integraleD         = 0;
-    derniereErreurG    = 0;
-    derniereErreurD    = 0;
-    commandeVitesse    = COCHES_PAR_MS;
-    integralePositionG = 0.0;
-    integralePositionD = 0.0;
-    commandeG          = 0;
-    commandeD          = 0;
-    fini               = false;
-}
-
 
 /**
  * @brief   Commence un déplacement non-bloquant.
@@ -465,4 +449,3 @@ void Virage_Gauche(int angle)
     MOTOR_SetSpeed(LEFT, 0);
     MOTOR_SetSpeed(RIGHT, 0);
 }
-
