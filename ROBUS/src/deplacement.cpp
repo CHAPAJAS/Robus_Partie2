@@ -206,6 +206,10 @@ bool Deplacement_Ligne(int distanceCM)
     {
         return false;
     }
+    if (distanceCM == 0)
+    {
+        return true;
+    }
 
     // Réinitiatialisation de l'encodeur
     ENCODER_Reset(LEFT);
@@ -402,6 +406,10 @@ void Deplacement_Virage(int angle)
     }
 
     print("Virage de %d°\n", angle);
+    if (angle == 0)
+    {
+        return;
+    }
     if(angle < 0)
     {
         angle = angle * -1;

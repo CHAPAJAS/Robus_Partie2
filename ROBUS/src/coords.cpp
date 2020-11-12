@@ -83,6 +83,12 @@ void Coords_Move(point destination)
     print("Moving to: (%d, %d) à %ld\n", destination.x, destination.y, (int32_t)angle);
 
     // Deplacement sur l'axe des x
+    int16_t deplacementX = destination.x - positionActuelle.x;
+    for(; deplacementX > 50; deplacementX -= 50)
+    {    // Brise un déplacement plus grand que 50cm en plusieurs déplacements de 50cm
+        Deplacement_Ligne(50);
+        Deplacement_Wait();
+    }
     Deplacement_Ligne(abs(destination.x - positionActuelle.x));
     Deplacement_Wait();
     delay(DELAY_DEPLACEMENT);

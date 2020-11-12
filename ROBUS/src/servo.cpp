@@ -29,8 +29,11 @@ void Servo_Handle();
 /* Définitions de fonctions ------------------------------------------------- */
 void Servo_Init()
 {
-    pinMode(PIN_SERVO, OUTPUT);
-    enabled = true;
+    if(ROBUS_IsBumper(REAR) != true)
+    {
+        pinMode(PIN_SERVO, OUTPUT);
+        enabled = true;
+    }
     // Timer3.initialize(FREQ_INTERRUPT_US);
 }
 
