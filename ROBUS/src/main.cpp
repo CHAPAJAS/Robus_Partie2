@@ -5,6 +5,7 @@
 #include "capteurs.h"
 #include "coords.h"
 #include "deplacement.h"
+#include "servo.h"
 #include "sonar.h"
 
 
@@ -17,27 +18,8 @@
 #define DELAY_LECTURE 20
 #define DISTANCE_B    200
 
-
-/******************************************************************************/
-/* Déclarations de fonctions ------------------------------------------------ */
-void RoutineA();
-void RoutineB();
-
-
-/******************************************************************************/
-/* Defines ------------------------------------------------------------------ */
-#define PIN_ROBUS        13
-#define PIN_HIGH_VERSION 11
-
-#define COULEUR_RED    0
-#define COULEUR_BLUE   1
-#define COULEUR_YELLOW 2
-
-#define ROBUS_A 0
-#define ROBUS_B 1
-
-#define ANGLE_FILET_UP   103
-#define ANGLE_FILET_DOWN 0
+#define ANGLE_FILET_UP   120
+#define ANGLE_FILET_DOWN 240
 
 
 /******************************************************************************/
@@ -60,12 +42,11 @@ void setup()
 
     // Initialisations
     BoardInit();
-
-
     Coords_Init(Robus);
     Deplacement_Init(Robus);
     capteurCouleur_Init();
     analogsetup();    // sifflet
+    // Servo_Init();
 
     print("\n Début de programme %c : %d --------------------------------- \n",
           (Robus == ROBUS_A) ? 'A' : (Robus == ROBUS_B) ? 'B' : 'x',
@@ -78,12 +59,6 @@ void setup()
     if(Robus == ROBUS_A)
     {
         Deplacement_Ligne(100);
-
-        SERVO_Enable(RIGHT);
-
-        delay(2000);
-        SERVO_SetAngle(RIGHT, 110);
-
         // RoutineA();
     }
     else if(Robus == ROBUS_B)
@@ -96,36 +71,18 @@ void setup()
         BIIIP();
     }
 
-    /*for (int i = 0; i < 5; i++)
-    {
-        Deplacement_Virage(-90);
-        delay(2000);
-    }*/
 }
 
 void loop()
 {
-    // Deplacement_Debug();
-    /*int cible = 0;
-    cible  = RoutineCouleur();*/
-
-
-    // AffichageCouleur(cible);
-
-    /*SERVO_Enable(0);
-    SERVO_SetAngle(0, 180);
-    delay(3000);
-    MOTOR_SetSpeed(0, 0.25);
-    MOTOR_SetSpeed(1, 0.25);*/
-    // SERVO_SetAngle(0, 90);
-    // delay(2000);
+    Deplacement_Debug();
 }
 
 
 void RoutineA()
 {
     // Attend que le ROBUS B soit passé
-    delay(4000);
+    // delay(4000);
 
     // Déplace vers la couleur
     Coords_Move(CIBLE_PASTILLE);
@@ -137,7 +94,7 @@ void RoutineA()
     Coords_Move(CIBLE_BALLE);
 
     // Ramasser la balle
-    // SERVO_SetAngle(LEFT, ANGLE_FILET_DOWN);
+    SERVO_SetAngle(LEFT, ANGLE_FILET_DOWN);
 
     // Déplacement vers la cible de couleur
     switch(couleur)
@@ -166,7 +123,7 @@ void RoutineB()
 
     delay(2000);
 
-    int cptDistance    = DISTANCE_B;
+    int cptDistance = DISTANCE_B;
     int distanceQuille;
     do
     {
@@ -190,7 +147,7 @@ void RoutineB()
 
         delay(DELAY_LECTURE);
     } while(distanceQuille > 45);
-    
+
     delay(500);
     Deplacement_Stop();
 
@@ -205,12 +162,6 @@ void RoutineB()
 
 int RobusVersionDetection()
 {
-    // La pin 11 est mise à HIGH sur les deux robots
-    // Le B est branché dessus,
-    pinMode(PIN_HIGH_VERSION, OUTPUT);
     pinMode(PIN_ROBUS, INPUT);
-    digitalWrite(PIN_HIGH_VERSION, HIGH);
-    delay(10);
-
     return digitalRead(PIN_ROBUS);
 }

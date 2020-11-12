@@ -4,7 +4,6 @@
 #include "pidMaths.h"
 
 #include "../Timer/TimerOne.h"
-#include "../Timer/TimerThree.h"
 
 
 /******************************************************************************/
@@ -26,7 +25,7 @@
 #define SPD_B 1.05
 
 // Temps
-#define TIMER_DELAY_MS 50    // Delai entre les mesures et ajustements
+#define TIMER_DELAY_MS 75//50    // Delai entre les mesures et ajustements
 #define DELTA_T        ((float)TIMER_DELAY_MS / 1000.0)
 #define DELAY_VIRAGE   1000
 
@@ -153,8 +152,9 @@ void Deplacement_Init(int robus)
     print("\n%ld", (int32_t)(KP_VITESSE_CONSTANCE * 1000));
     print("\n%ld", (int32_t)(KI_VITESSE_CONSTANCE * 1000));
     print("\n%ld\n", (int32_t)(KD_VITESSE_CONSTANCE * 1000));
-    Timer3.initialize((unsigned long)TIMER_DELAY_MS * 1000L);
-    Timer3.attachInterrupt(&PID);
+
+    Timer1.initialize(TIMER_DELAY_MS * 1000);
+    Timer1.attachInterrupt(&PID);
 }
 
 bool Deplacement_Fini()
@@ -266,8 +266,6 @@ void PID()
 
     // Actualisation du temps
     tempsRequis -= TIMER_DELAY_MS;
-
-    print("%d\n", millis());
 }
 
 

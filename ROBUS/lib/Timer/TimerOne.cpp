@@ -56,7 +56,7 @@ void TimerOne::initialize(unsigned long microseconds)
 
 void TimerOne::setPeriod(unsigned long microseconds)		// AR modified for atomic access
 {
-  
+  currentPeriod_us = microseconds;
   unsigned long cycles = (F_CPU / 2000000) * microseconds;                                // the counter runs backwards after TOP, interrupt is at BOTTOM so divide microseconds by 2
   if(cycles < RESOLUTION)              clockSelectBits = _BV(CS10);              // no prescale, full xtal
   else if((cycles >>= 3) < RESOLUTION) clockSelectBits = _BV(CS11);              // prescale by /8
