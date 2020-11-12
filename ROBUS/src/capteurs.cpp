@@ -83,8 +83,7 @@ int RoutineCouleur()
     else
     {
         // On se prend une chance, il y a 1/3 de chance qu'on ait raison!
-        // AffichageCouleur(ROUGE);
-        // return ROUGE;
+        AffichageCouleur(JAUNE);
         return COULEUR_INCONNUE;
     }
 }

@@ -26,7 +26,7 @@ void analogsetup()
 void analogWait()
 {
     int i = 0;
-    while(true)
+    while(ROBUS_IsBumper(REAR) == false)
     {
         delay(SAMPLE_DELAY_MS);
 

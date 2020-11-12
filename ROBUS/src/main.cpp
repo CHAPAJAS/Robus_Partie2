@@ -51,7 +51,7 @@ void setup()
           millis());
 
     // attendre le coup de sifflet
-    // analogWait();
+    analogWait();
 
     // Appelle la fonction principale correspondante
     if(Robus == ROBUS_A)
@@ -82,13 +82,13 @@ void loop()
 void RoutineA()
 {
     // Attend que le ROBUS B soit passé
-    // delay(4000);
+    delay(7000);
 
     // Déplace vers la couleur
     Coords_Move(CIBLE_PASTILLE);
 
     // Lecture de la couleur
-    delay(3000);
+    delay(1000);
     int couleur = RoutineCouleur();
 
     // Déplacement vers la balle
@@ -100,7 +100,7 @@ void RoutineA()
 
     // La balle rajoute de la friction au système, on compense cette friction par un offset positif
     // dans l'angle
-    Coords_AjusterOffsetAngle(15);
+    Coords_AjusterOffsetAngle(-10);
 
     // Déplacement vers la cible de couleur
     switch(couleur)

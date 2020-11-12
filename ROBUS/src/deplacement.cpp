@@ -1,9 +1,9 @@
 /******************************************************************************/
 /* Inclusions --------------------------------------------------------------- */
 #include "deplacement.h"
+#include "../Timer/TimerOne.h"
 #include "pidMaths.h"
 #include "timer.h"
-#include "../Timer/TimerOne.h"
 
 
 /******************************************************************************/
@@ -21,12 +21,12 @@
 #define ANGULOD_B 0.961
 #define ANGULOG_B 0.95
 
-#define SPD_A 1
-#define SPD_B 1.05
+#define RAPIDULO_A 0.98
+#define RAPIDULO_B 1.05
 
 // Temps
-#define DELTA_T        ((float)TIMER_DELAY_MS / 1000.0)
-#define DELAY_VIRAGE   1000
+#define DELTA_T      ((float)TIMER_DELAY_MS / 1000.0)
+#define DELAY_VIRAGE 1000
 
 // Constantes de PID
 #define KP_POSITION 0.00005f
@@ -89,15 +89,15 @@ float   angulo_d           = 0;
 float   spd                = 0;
 
 pidPacket PID_SPEED_OBJECTIF  = {KP_VITESSE_OBJECTIF,
-                                      KI_VITESSE_OBJECTIF,
-                                      KD_VITESSE_OBJECTIF,
-                                      &integraleG,
-                                      &derniereErreurG};
+                                KI_VITESSE_OBJECTIF,
+                                KD_VITESSE_OBJECTIF,
+                                &integraleG,
+                                &derniereErreurG};
 pidPacket PID_SPEED_CONSTANCE = {KP_VITESSE_CONSTANCE,
-                                       KI_VITESSE_CONSTANCE,
-                                       KD_VITESSE_CONSTANCE,
-                                       &integraleD,
-                                       &derniereErreurD};
+                                 KI_VITESSE_CONSTANCE,
+                                 KD_VITESSE_CONSTANCE,
+                                 &integraleD,
+                                 &derniereErreurD};
 pidPacket PID_POSITION_G      = {KP_POSITION, KI_POSITION, 0, &integralePositionG, nullptr};
 pidPacket PID_POSITION_D      = {KP_POSITION, KI_POSITION, 0, &integralePositionD, nullptr};
 
@@ -130,7 +130,7 @@ void Deplacement_Init(int robus)
         constanteEncodeurD = ENCODEUR_DROIT_360_A;
         angulo_d           = ANGULOD_A;
         angulo_g           = ANGULOG_A;
-        spd                = SPD_A;
+        spd                = RAPIDULO_A;
     }
     else if((robus == 1) || (robus == 'B'))
     {
@@ -138,7 +138,7 @@ void Deplacement_Init(int robus)
         constanteEncodeurD = ENCODEUR_DROIT_360_A;
         angulo_d           = ANGULOD_B;
         angulo_g           = ANGULOG_B;
-        spd                = SPD_B;
+        spd                = RAPIDULO_B;
     }
     else
     {
@@ -206,7 +206,7 @@ bool Deplacement_Ligne(int distanceCM)
     {
         return false;
     }
-    if (distanceCM == 0)
+    if(distanceCM == 0)
     {
         return true;
     }
@@ -401,12 +401,12 @@ void Deplacement_Virage(int angle)
 {
     for(; abs(angle) > 100; angle = (angle >= 0) ? angle - 90 : angle + 90)
     {
-        Deplacement_Virage((angle % 90 == 0) ? ((angle >= 0) ? 90 : -90) : angle % 90);
+        Deplacement_Virage(angle >= 0 ? 90 : -90);
         delay(DELAY_VIRAGE);
     }
 
     print("Virage de %d°\n", angle);
-    if (angle == 0)
+    if(angle == 0)
     {
         return;
     }
