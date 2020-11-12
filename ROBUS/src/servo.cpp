@@ -38,8 +38,8 @@ void Servo_Init()
 {
     pinMode(PIN_SERVO, OUTPUT);
 
-    Timer3.initialize(FREQ_INTERRUPT_US);
-    // Servo_Disable();
+    // Timer3.initialize(FREQ_INTERRUPT_US);
+    Servo_Disable();
 }
 
 void Servo_SetAngle(int angle)
@@ -51,11 +51,11 @@ void Servo_SetAngle(int angle)
 void Servo_Enable()
 {
     Timer3.attachInterrupt(&Servo_Handle);
-    Timer3.resume();
+    Timer3.start();
 }
 void Servo_Disable()
 {
-    // Timer3.stop();
+    Timer3.stop();
     Timer3.detachInterrupt();
 }
 
