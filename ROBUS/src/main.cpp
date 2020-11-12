@@ -120,6 +120,8 @@ void RoutineA()
             Coords_Move(CIBLE_JAUNE);
             break;
     }
+
+    Deplacement_Virage(360);
 }
 
 void RoutineB()
