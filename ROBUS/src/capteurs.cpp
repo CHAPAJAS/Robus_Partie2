@@ -7,7 +7,7 @@
 
 /*****************************************************************************/
 /* Définitions ------------------------------------------------------------- */
-#define MARGE 4
+#define MARGE 6
 
 #define PIN_RED    8
 #define PIN_BLUE   9
@@ -52,6 +52,8 @@ void capteurCouleur_Init()
     digitalWrite(PIN_RED, HIGH);    // La LED est éteinte à l'état HIGH
     digitalWrite(PIN_BLUE, HIGH);
     digitalWrite(PIN_YELLOW, HIGH);
+
+    tcs.begin();
 }
 
 int RoutineCouleur()
@@ -81,10 +83,10 @@ int RoutineCouleur()
     else
     {
         // On se prend une chance, il y a 1/3 de chance qu'on ait raison!
-        return ROUGE;
-        // return COULEUR_INCONNUE;
+        // AffichageCouleur(ROUGE);
+        // return ROUGE;
+        return COULEUR_INCONNUE;
     }
-    
 }
 
 void saisirRGB(Adafruit_TCS34725* tcs, struct RGB* rawCouleur)
@@ -126,17 +128,14 @@ void detecterCouleur(struct RGB couleur, char* couleurDetecte)
 {
     if(DetecterRouge(couleur) == true)
     {
-
         strcpy(couleurDetecte, "Rouge");
     }
     else if(DetecterBleu(couleur) == true)
     {
-
         strcpy(couleurDetecte, "Bleu");
     }
     else if(DetecterJaune(couleur) == true)
     {
-
         strcpy(couleurDetecte, "Jaune");
     }
     else
@@ -173,7 +172,7 @@ int detecterCouleur(struct RGB couleur)
 bool DetecterRouge(struct RGB couleur)
 {
     // Rouge  928069
-    if((couleur.red <= 92 + MARGE && couleur.red >= 92 - MARGE)
+    if((couleur.red >= 92 - MARGE && couleur.red <= 92 + MARGE)
        && (couleur.green >= 80 - MARGE && couleur.green <= 80 + MARGE)
        && (couleur.blue >= 69 - MARGE && couleur.blue <= 69 + MARGE))
     {
@@ -187,7 +186,7 @@ bool DetecterRouge(struct RGB couleur)
 bool DetecterBleu(struct RGB couleur)
 {
     // Blue  699576
-    if((couleur.red <= 69 + MARGE && couleur.red >= 69 - MARGE)
+    if((couleur.red >= 69 - MARGE && couleur.red <= 69 + MARGE)
        && (couleur.green >= 95 - MARGE && couleur.green <= 95 + MARGE)
        && (couleur.blue >= 76 - MARGE && couleur.blue <= 76 + MARGE))
     {
@@ -201,7 +200,7 @@ bool DetecterBleu(struct RGB couleur)
 bool DetecterJaune(struct RGB couleur)
 {
     // Jaune  919553
-    if((couleur.red <= 91 + MARGE && couleur.red >= 91 - MARGE)
+    if((couleur.red >= 91 - MARGE && couleur.red <= 91 + MARGE)
        && (couleur.green >= 95 - MARGE && couleur.green <= 95 + MARGE)
        && (couleur.blue >= 53 - MARGE && couleur.blue <= 53 + MARGE))
     {

@@ -25,7 +25,7 @@
 void RoutineA();
 void RoutineB();
 
-int  RobusVersionDetection();
+int RobusVersionDetection();
 
 
 /******************************************************************************/
@@ -56,10 +56,9 @@ void setup()
     // Appelle la fonction principale correspondante
     if(Robus == ROBUS_A)
     {
-        // Coords_Move(CIBLE_PASTILLE);
-        Deplacement_Ligne(150);
         // Coords_MoveOffset(150, 0);
-        // RoutineA();
+        RoutineA();
+        // RoutineCouleur();
     }
     else if(Robus == ROBUS_B)
     {
@@ -89,7 +88,7 @@ void RoutineA()
     Coords_Move(CIBLE_PASTILLE);
 
     // Lecture de la couleur
-    delay(1000);
+    delay(3000);
     int couleur = RoutineCouleur();
 
     // Déplacement vers la balle
@@ -99,7 +98,10 @@ void RoutineA()
     Servo_SetAngle(ANGLE_FILET_DOWN);
     delay(2000);
 
-    return;
+    // La balle rajoute de la friction au système, on compense cette friction par un offset positif
+    // dans l'angle
+    Coords_AjusterOffsetAngle(15);
+
     // Déplacement vers la cible de couleur
     switch(couleur)
     {

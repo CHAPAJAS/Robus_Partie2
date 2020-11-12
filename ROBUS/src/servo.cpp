@@ -29,12 +29,8 @@ void Servo_Handle();
 /* Définitions de fonctions ------------------------------------------------- */
 void Servo_Init()
 {
-    if(AX_GetVoltage() < 5)
-    {
-        pinMode(PIN_SERVO, OUTPUT);
-        enabled = true;
-    }
-    // Timer3.initialize(FREQ_INTERRUPT_US);
+    pinMode(PIN_SERVO, OUTPUT);
+    enabled = true;
 }
 
 

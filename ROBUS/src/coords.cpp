@@ -21,11 +21,11 @@
 
 /******************************************************************************/
 /* Constantes --------------------------------------------------------------- */
-const point Depart_A{MOITIE_CARRE, 75};    // Départ du robot A
-const point Depart_B{MOITIE_CARRE, 25};    // Départ du robot B
+const point Depart_A{0, 75};    // Départ du robot A
+const point Depart_B{0, 25};    // Départ du robot B
 
-const point Pastille{100, 50};                     // Pastille de couleur, 1m du début
-const point Balle{200 + 50, HAUTEUR_PISTE / 2};    // Balle à 2.5m du début
+const point Pastille{100, 50};      // Pastille de couleur, 1m du début
+const point Balle{200 + 20, 65};    // Balle à 2.5m du début
 
 const point Jaune{300 + 20, MOITIE_CARRE};    // Pas accoté sur la ligne de 3m
 const point Bleu{400 + MOITIE_CARRE, HAUTEUR_PISTE - MOITIE_CARRE};
@@ -77,22 +77,10 @@ void Coords_Move(point destination)
         ? 0
         : (destination.y > positionActuelle.y) ? -90 : 90;    // Choisi un angle de 90° ou -90°
     // GetAngleToPoint(positionActuelle, destination);
-    angle += angleOffset;
+    angle += angle >= 0 ? angleOffset : -angleOffset;
 
     // debugging avancé
     print("Moving to: (%d, %d) à %ld\n", destination.x, destination.y, (int32_t)angle);
-
-    // Deplacement sur l'axe des x
-    int16_t deplacementX = destination.x - positionActuelle.x;
-    for(; deplacementX > 50; deplacementX -= 50)
-    {    // Brise un déplacement plus grand que 50cm en plusieurs déplacements de 50cm
-        Deplacement_Ligne(50);
-        Deplacement_Wait();
-    }
-    Deplacement_Ligne(abs(destination.x - positionActuelle.x));
-    Deplacement_Wait();
-    delay(DELAY_DEPLACEMENT);
-
 
     // Rotation
     Deplacement_Virage(angle);
@@ -102,10 +90,20 @@ void Coords_Move(point destination)
     Deplacement_Ligne(abs(destination.y - positionActuelle.y));
     Deplacement_Wait();
     delay(DELAY_DEPLACEMENT);
-    // Deplacement_Ligne(distance);
 
     // Contre-rotation
     Deplacement_Virage(-angle);
+    delay(DELAY_DEPLACEMENT);
+
+    // Deplacement sur l'axe des x
+    int16_t deplacementX = abs(destination.x - positionActuelle.x);
+    for(; deplacementX > 100; deplacementX -= 100)
+    {    // Brise un déplacement plus grand que 100cm en plusieurs déplacements de 100cm
+        Deplacement_Ligne(100);
+        Deplacement_Wait();
+    }
+    Deplacement_Ligne(deplacementX);
+    Deplacement_Wait();
     delay(DELAY_DEPLACEMENT);
 
     // Actualisation de la position et de l'angle
