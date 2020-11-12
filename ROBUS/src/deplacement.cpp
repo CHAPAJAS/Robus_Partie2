@@ -168,8 +168,9 @@ void Deplacement_Wait()
 {
     while(Deplacement_Fini() == false)
     {
-        // Deplacement_Debug();
+        Deplacement_Debug();
     }
+    print("Deplacement terminé");
 }
 
 void Deplacement_Stop()

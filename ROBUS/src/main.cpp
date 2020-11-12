@@ -57,7 +57,7 @@ void setup()
     // Appelle la fonction principale correspondante
     if(Robus == ROBUS_A)
     {
-        Deplacement_Ligne(100);
+        Coords_Move(CIBLE_PASTILLE);
         // RoutineA();
     }
     else if(Robus == ROBUS_B)
@@ -70,6 +70,8 @@ void setup()
         BIIIP();
     }
 
+    
+  Servo_DeInit();
 }
 
 void loop()

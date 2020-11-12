@@ -33,6 +33,12 @@ void Servo_Init()
     // Timer3.initialize(FREQ_INTERRUPT_US);
 }
 
+
+void Servo_DeInit()
+{
+    pinMode(PIN_SERVO, INPUT);
+}
+
 void Servo_SetAngle(int angle)
 {
     desiredPulse = CALCULATE_PULSE(angle);

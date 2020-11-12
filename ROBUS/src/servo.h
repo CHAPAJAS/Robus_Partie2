@@ -12,4 +12,5 @@
 /******************************************************************************/
 /* Déclaration de fonctions ------------------------------------------------- */
 void Servo_Init();
+void Servo_DeInit();
 void Servo_SetAngle(int angle);
