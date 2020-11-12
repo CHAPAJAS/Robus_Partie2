@@ -121,7 +121,7 @@ void RoutineA()
             break;
     }
 
-    Deplacement_Virage(360);
+    Deplacement_Virage(-360);
 }
 
 void RoutineB()
