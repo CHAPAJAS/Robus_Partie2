@@ -7,6 +7,7 @@
 #include "deplacement.h"
 #include "servo.h"
 #include "sonar.h"
+#include "timer.h"
 
 
 /******************************************************************************/
@@ -44,6 +45,7 @@ void setup()
     capteurCouleur_Init();
     analogsetup();    // sifflet
     Servo_Init();
+    timer_init();
 
     print("\n Début de programme %c : %d --------------------------------- \n",
           (Robus == ROBUS_A) ? 'A' : (Robus == ROBUS_B) ? 'B' : 'x',
