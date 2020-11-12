@@ -7,7 +7,7 @@
 
 /*****************************************************************************/
 /* Définitions ------------------------------------------------------------- */
-#define MARGE 3
+#define MARGE 4
 
 #define PIN_RED    8
 #define PIN_BLUE   9
@@ -80,7 +80,9 @@ int RoutineCouleur()
     }
     else
     {
-        return COULEUR_INCONNUE;
+        // On se prend une chance, il y a 1/3 de chance qu'on ait raison!
+        return ROUGE;
+        // return COULEUR_INCONNUE;
     }
     
 }

@@ -25,7 +25,6 @@
 void RoutineA();
 void RoutineB();
 
-void routine_couleur();
 int  RobusVersionDetection();
 
 
@@ -57,8 +56,8 @@ void setup()
     // Appelle la fonction principale correspondante
     if(Robus == ROBUS_A)
     {
-        Coords_Move(CIBLE_PASTILLE);
-        // RoutineA();
+        // Coords_Move(CIBLE_PASTILLE);
+        RoutineA();
     }
     else if(Robus == ROBUS_B)
     {
@@ -70,8 +69,8 @@ void setup()
         BIIIP();
     }
 
-    
-  Servo_DeInit();
+
+    Servo_DeInit();
 }
 
 void loop()
@@ -88,14 +87,17 @@ void RoutineA()
     Coords_Move(CIBLE_PASTILLE);
 
     // Lecture de la couleur
+    delay(1000);
     int couleur = RoutineCouleur();
 
     // Déplacement vers la balle
     Coords_Move(CIBLE_BALLE);
 
     // Ramasser la balle
-    SERVO_SetAngle(LEFT, ANGLE_FILET_DOWN);
+    Servo_SetAngle(ANGLE_FILET_DOWN);
+    delay(2000);
 
+    return;
     // Déplacement vers la cible de couleur
     switch(couleur)
     {

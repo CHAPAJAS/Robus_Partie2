@@ -170,7 +170,7 @@ void Deplacement_Wait()
     {
         Deplacement_Debug();
     }
-    print("Deplacement terminé");
+    print("Deplacement terminé\n");
 }
 
 void Deplacement_Stop()

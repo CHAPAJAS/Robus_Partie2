@@ -103,8 +103,11 @@ void Coords_Move(point destination)
     delay(DELAY_DEPLACEMENT);
 
     // Actualisation de la position et de l'angle
-    positionActuelle = destination;
-    angleActuel += angle;
+    positionActuelle.x = destination.x;
+    positionActuelle.y = destination.y;
+    // angleActuel += angle;
+
+    print("Déplacement à x:%d, y:%d terminé", destination.x, destination.y);
 }
 
 void Coords_Move(int16_t x, int16_t y)
