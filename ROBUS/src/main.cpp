@@ -51,7 +51,9 @@ void setup()
           millis());
 
     // attendre le coup de sifflet
-    analogWait();
+    SERVO_Enable(0);
+    SERVO_SetAngle(0,120);
+    Deplacement_Virage(-360);
 
     // Appelle la fonction principale correspondante
     if(Robus == ROBUS_A)
