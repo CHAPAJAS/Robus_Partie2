@@ -2,7 +2,7 @@
 int aimantPIN = XX //PIN digital 0/5V
 pinMode(aimantPIN,OUTPUT);
 
-void PICK_UP()
+void PICK_UP(uint8_t id,uint8_t angle )                  //laisser le type de variable overight ou concatene
 {
     void SERVO_Enable(uint8_t id){                          //activation bras
     __Robus__.enableServo(id);
@@ -26,4 +26,5 @@ void PICK_UP()
     void SERVO_Disable(uint8_t id){                         //désactiver le bras
     __Robus__.disableServo(id);
     }
+    return 0;
 }
